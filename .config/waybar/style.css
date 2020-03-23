@@ -1,0 +1,162 @@
+* {
+  border: none;
+  border-radius: 0;
+  /* `otf-font-awesome` is required to be installed for icons */
+  font-family: JetBrains Mono, Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  min-height: 0;
+}
+
+window#waybar {
+  background: #282c34;
+  transition-duration: 0.5s;
+  transition-property: background-color;
+}
+
+window#waybar.hidden {
+  opacity: 0.2;
+}
+
+#workspaces button {
+  color: #abb2bf;
+  padding: 0 5px;
+  background: transparent;
+}
+
+/* https://github.com/Alexays/Waybar/wiki/FAQ#the-workspace-buttons-have-a-strange-hover-effect */
+#workspaces button:hover {
+  color: #abb2bf;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+#workspaces button.focused {
+  color: #282c34;
+  background: #61afef;
+}
+
+#workspaces button.urgent {
+  color: #abb2bf;
+  background: #e06c75;
+}
+
+#mode {
+  color: #abb2bf;
+  margin: 0 10px;
+  font-style: italic;
+  font-weight: lighter;
+  background: #98c379;
+}
+
+#clock,
+#battery,
+#cpu,
+#memory,
+#temperature,
+#backlight,
+#network,
+#pulseaudio,
+#custom-media,
+#tray,
+#mode,
+#idle_inhibitor,
+#mpd {
+  color: #abb2bf;
+  margin: 0;
+  padding: 0 10px;
+}
+
+#battery.charging {
+  color: #abb2bf;
+  background: #98c379;
+}
+
+@keyframes blink {
+  to {
+    background: #ffffff;
+    color: #000000;
+  }
+}
+
+#battery.critical:not(.charging) {
+  background: #e06c75;
+  color: #ffffff;
+  animation-name: blink;
+  animation-duration: 0.5s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+label:focus {
+  background: #000000;
+}
+
+#backlight {
+  background: #90b1b1;
+}
+
+#network.disconnected {
+  background: #e06c75;
+}
+
+#pulseaudio {
+  color: #abb2bf;
+  background: transparent;
+}
+
+#pulseaudio.muted {
+  color: #abb2bf;
+  background: #e06c75;
+}
+
+#custom-media {
+  background: #66cc99;
+  color: #2a5c45;
+  min-width: 100px;
+}
+
+#custom-media.custom-spotify {
+  background: #66cc99;
+}
+
+#custom-media.custom-vlc {
+  background: #ffa000;
+}
+
+#temperature {
+  background: #f0932b;
+}
+
+#temperature.critical {
+  background-color: #eb4d4b;
+}
+
+#tray {
+  background: transparent;
+}
+
+#idle_inhibitor {
+  background-color: #2d3436;
+}
+
+#idle_inhibitor.activated {
+  background-color: #ecf0f1;
+  color: #2d3436;
+}
+
+#mpd {
+  background-color: #66cc99;
+  color: #2a5c45;
+}
+
+#mpd.disconnected {
+  background-color: #f53c3c;
+}
+
+#mpd.stopped {
+  background-color: #90b1b1;
+}
+
+#mpd.paused {
+  background-color: #51a37a;
+}
