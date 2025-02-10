@@ -4,7 +4,7 @@
   homebrew = {
     enable = true;
 
-    brews = [ ];
+    brews = [ "docker-buildx" ];
 
     # Uncatogorized casks
     casks = [
@@ -15,6 +15,8 @@
 
       "steam"
       "moonlight"
+      "zen-browser"
+      "tailscale"
     ];
 
     # Install apps from MacAppStore.

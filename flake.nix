@@ -30,10 +30,16 @@
 
     homebrew-bundle.url = "github:homebrew/homebrew-bundle";
     homebrew-bundle.flake = false;
+
+    # Cross OS/arch builder.  Look at the readme for details when setting up
+    # from scratch.  Requires some bootstrap jazz.
+    nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
+    nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = { self, agenix, nur, nix-darwin, nix-homebrew, nixpkgs, home-manager
-    , homebrew-core, homebrew-cask, homebrew-bundle, ... }@inputs:
+    , homebrew-core, homebrew-cask, homebrew-bundle, nix-rosetta-builder, ...
+    }@inputs:
     let
       user = "marvin";
       systemsDarwin = [ "foldy-arm" ];
@@ -50,10 +56,10 @@
           };
 
           modules = [
-            # Secrets
-            agenix.nixosModules.default
             # Overlays
             { nixpkgs.overlays = [ nur.overlays.default ]; }
+
+            nix-rosetta-builder.darwinModules.default
 
             home-manager.darwinModules.home-manager
             {

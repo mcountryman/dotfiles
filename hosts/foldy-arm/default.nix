@@ -16,6 +16,19 @@
   ];
 
   nix = {
+    # # We need this to bootstrap nix-rosetta-builder..
+    # linux-builder = {
+    #   enable = true;
+    #   config.virtualisation = {
+    #     cores = 8;
+    #     darwin-builder = {
+    #       diskSize = 40 * 1024;
+    #       memorySize = 16 * 1024;
+    #     };
+    #   };
+    # };
+
+    settings.trusted-users = [ "@admin" user ];
     # Necessary for using flakes on this system.
     settings.experimental-features = "nix-command flakes";
   };
@@ -47,7 +60,7 @@
         AppleInterfaceStyle = "Dark";
         AppleShowAllExtensions = true;
         AppleSpacesSwitchOnActivate = false;
-        _HIHideMenuBar = true;
+        _HIHideMenuBar = false;
       };
 
       dock = {
@@ -69,6 +82,6 @@
   environment = {
     # List packages installed in system profile. To search by name, run:
     # $ nix-env -qaP | grep wget
-    systemPackages = [ ];
+    systemPackages = [ pkgs.gnused ];
   };
 }

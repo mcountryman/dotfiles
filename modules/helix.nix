@@ -1,6 +1,54 @@
-{ pkgs, user, ... }:
+{ lib, pkgs, user, ... }:
 
-{
+let
+  nix = {
+    name = "nix";
+    auto-format = true;
+    formatter.command = "${pkgs.nixfmt}/bin/nixfmt";
+  };
+  rust = {
+    name = "rust";
+    auto-format = true;
+    indent = {
+      tab-width = 2;
+      unit = " ";
+    };
+  };
+  toml = {
+    name = "toml";
+    auto-format = true;
+    formatter = {
+      command = "${pkgs.taplo}/bin/taplo";
+      args = [ "taplo" "format" "-" ];
+    };
+  };
+  hcl = {
+    name = "hcl";
+    auto-format = true;
+    formatter = {
+      command = "${pkgs.opentofu}/bin/tofu";
+      args = [ "fmt" "-" ];
+    };
+  };
+  typescript-language-server = name: {
+    name = "${name}";
+    language-servers = [ "typescript-language-server" "eslint" ];
+    auto-format = true;
+    formatter = {
+      command = "prettier";
+      args = [ "--parser" "typescript" ];
+    };
+  };
+in {
+  environment.systemPackages = [
+    #
+    pkgs.nodePackages.prettier
+    pkgs.vscode-langservers-extracted
+    pkgs.typescript-language-server
+    pkgs.terraform-ls
+    pkgs.bash-language-server
+  ];
+
   home-manager.users.${user} = {
     programs.helix = {
       enable = true;
@@ -13,7 +61,6 @@
           bufferline = "always";
           cursorline = true;
           line-number = "relative";
-          auto-format = true;
           true-color = true;
 
           lsp = {
@@ -56,26 +103,43 @@
       };
       languages = {
         language = [
-          {
-            name = "nix";
-            auto-format = true;
-            formatter.command = "${pkgs.nixfmt}/bin/nixfmt";
-          }
-          {
-            name = "rust";
-            indent = {
-              tab-width = 2;
-              unit = " ";
-            };
-          }
-          {
-            name = "toml";
-            formatter = {
-              command = "${pkgs.taplo}/bin/taplo";
-              args = [ "taplo" "format" "-" ];
-            };
-          }
+          nix
+          hcl
+          rust
+          toml
+          (typescript-language-server "tsx")
+          (typescript-language-server "jsx")
+          (typescript-language-server "typescript")
+          (typescript-language-server "javascript")
         ];
+
+        language-server.eslint = {
+          args = [ "--stdio" ];
+          command = "vscode-eslint-language-server";
+          config = {
+            run = "onType";
+            quiet = false;
+            format = { enable = true; };
+            nodePath = "";
+            validate = "on";
+            problems = { shortenToSingleLine = false; };
+            experimental = { };
+            rulesCustomizations = [ ];
+
+            codeActionsOnSave = {
+              mode = "all";
+              source.fixAll.eslint = true;
+            };
+
+            codeAction = {
+              disableRuleComment = {
+                enable = true;
+                location = "separateLine";
+              };
+              showDocumentation = { enable = false; };
+            };
+          };
+        };
       };
     };
   };

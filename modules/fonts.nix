@@ -1,11 +1,11 @@
 { pkgs, ... }:
 
 {
-  fonts.packages = with pkgs; [
-    nerd-fonts.iosevka
-    nerd-fonts.iosevka-term
-    nerd-fonts.iosevka-term-slab
-    nerd-fonts.proggy-clean-tt
+  fonts.packages = [
+    pkgs.nerd-fonts.iosevka
+    pkgs.nerd-fonts.iosevka-term
+    pkgs.nerd-fonts.iosevka-term-slab
+    pkgs.nerd-fonts.proggy-clean-tt
 
     # -
   ];

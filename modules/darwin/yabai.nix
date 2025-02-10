@@ -50,7 +50,7 @@ in {
       right_padding = 8;
       bottom_padding = 8;
       window_gap = 8;
-      menubar_opacity = 0.0;
+      # menubar_opacity = 0.0;
 
       # Style
       window_shadow = "float";
@@ -127,8 +127,8 @@ in {
       cmd + shift - 9 : yabai -m window --space 9
       cmd + shift - 0 : yabai -m window --space 10
 
-      cmd - f : yabai -m window --toggle zoom-fullscreen
-      cmd + shift - f : yabai -m window --toggle native-fullscreen
+      cmd + shift - f : yabai -m window --toggle zoom-fullscreen
+      cmd + shift - return : yabai -m window --toggle native-fullscreen
 
       cmd - m : yabai -m window --toggle min-scratch
 
@@ -136,7 +136,7 @@ in {
 
       :: resize : ${scripts.mode-resize}/bin/run
 
-      cmd - r ; resize
+      cmd + shift - r ; resize
 
       resize < h : yabai -m window --resize left:-20:0 ; yabai -m window --resize right:-20:0
       resize < j : yabai -m window --resize top:20:0 ; yabai -m window --resize bottom:0:20
@@ -148,7 +148,7 @@ in {
   };
 
   services.spacebar = {
-    enable = true;
+    enable = false;
     package = pkgs.spacebar;
     config = {
       display = "main";
