@@ -30,6 +30,15 @@ let
       args = [ "fmt" "-" ];
     };
   };
+  yaml = {
+    name = "yaml";
+    auto-format = true;
+    formatter = {
+      command =
+        "prettier"; # NOTE: This should directly link to the prettier nix pkg but, fuggit
+      args = [ "--parser" "yaml" ];
+    };
+  };
   typescript-language-server = name: {
     name = "${name}";
     language-servers = [ "typescript-language-server" "eslint" ];
@@ -47,6 +56,7 @@ in {
     pkgs.typescript-language-server
     pkgs.terraform-ls
     pkgs.bash-language-server
+    pkgs.yaml-language-server
   ];
 
   home-manager.users.${user} = {
@@ -107,6 +117,7 @@ in {
           hcl
           rust
           toml
+          yaml
           (typescript-language-server "tsx")
           (typescript-language-server "jsx")
           (typescript-language-server "typescript")
