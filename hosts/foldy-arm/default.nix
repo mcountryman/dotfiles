@@ -28,7 +28,10 @@
     #   };
     # };
 
-    settings.trusted-users = [ "@admin" user ];
+    settings.trusted-users = [
+      "@admin"
+      user
+    ];
     # Necessary for using flakes on this system.
     settings.experimental-features = "nix-command flakes";
   };
@@ -82,6 +85,12 @@
   environment = {
     # List packages installed in system profile. To search by name, run:
     # $ nix-env -qaP | grep wget
-    systemPackages = [ pkgs.gnused ];
+    systemPackages = [
+      pkgs.gnused
+      pkgs.podman
+      pkgs.podman-compose
+      pkgs.docker-client
+      pkgs.rar
+    ];
   };
 }

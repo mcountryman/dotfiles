@@ -18,6 +18,7 @@
       interactiveShellInit = ''
         set fish_greeting # Disable greeting
 
+        ssh-add --apple-load-keychain 2> /dev/null
         ${pkgs.starship}/bin/starship init fish | source
       '';
 

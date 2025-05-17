@@ -1,54 +1,29 @@
-{ lib, pkgs, user, ... }:
+{
+  lib,
+  pkgs,
+  user,
+  config,
+  ...
+}:
 
 let
-  nix = {
-    name = "nix";
-    auto-format = true;
-    formatter.command = "${pkgs.nixfmt}/bin/nixfmt";
-  };
-  rust = {
-    name = "rust";
-    auto-format = true;
-    indent = {
-      tab-width = 2;
-      unit = " ";
-    };
-  };
-  toml = {
-    name = "toml";
-    auto-format = true;
-    formatter = {
-      command = "${pkgs.taplo}/bin/taplo";
-      args = [ "taplo" "format" "-" ];
-    };
-  };
-  hcl = {
-    name = "hcl";
-    auto-format = true;
-    formatter = {
-      command = "${pkgs.opentofu}/bin/tofu";
-      args = [ "fmt" "-" ];
-    };
-  };
-  yaml = {
-    name = "yaml";
-    auto-format = true;
-    formatter = {
-      command =
-        "prettier"; # NOTE: This should directly link to the prettier nix pkg but, fuggit
-      args = [ "--parser" "yaml" ];
-    };
-  };
   typescript-language-server = name: {
     name = "${name}";
-    language-servers = [ "typescript-language-server" "eslint" ];
+    language-servers = [
+      "typescript-language-server"
+      "eslint"
+    ];
     auto-format = true;
     formatter = {
       command = "prettier";
-      args = [ "--parser" "typescript" ];
+      args = [
+        "--parser"
+        "typescript"
+      ];
     };
   };
-in {
+in
+{
   environment.systemPackages = [
     #
     pkgs.nodePackages.prettier
@@ -57,6 +32,11 @@ in {
     pkgs.terraform-ls
     pkgs.bash-language-server
     pkgs.yaml-language-server
+    pkgs.nil
+    pkgs.nixd
+    (pkgs.vale.withStyles (s: [
+      s.google
+    ]))
   ];
 
   home-manager.users.${user} = {
@@ -66,7 +46,10 @@ in {
         theme = "ayu_dark";
         editor = {
           mouse = false;
-          shell = [ "fish" "-c" ];
+          shell = [
+            "fish"
+            "-c"
+          ];
           rulers = [ 80 ];
           bufferline = "always";
           cursorline = true;
@@ -90,15 +73,27 @@ in {
           };
 
           statusline = {
-            left = [ "mode" "diagnostics" ];
-            right = [ "selections" "position" ];
-            center = [ "file-name" "file-modification-indicator" ];
+            left = [
+              "mode"
+              "diagnostics"
+            ];
+            right = [
+              "selections"
+              "position"
+            ];
+            center = [
+              "file-name"
+              "file-modification-indicator"
+            ];
           };
         };
 
         keys = {
           normal = {
-            "esc" = [ "keep_primary_selection" "collapse_selection" ];
+            "esc" = [
+              "keep_primary_selection"
+              "collapse_selection"
+            ];
             left = "no_op";
             down = "no_op";
             up = "no_op";
@@ -113,16 +108,67 @@ in {
       };
       languages = {
         language = [
-          nix
-          hcl
-          rust
-          toml
-          yaml
+          {
+            name = "nix";
+            auto-format = true;
+            # formatter.command = lib.getExe pkgs.nixfmt-rfc-style;
+            formatter.command = lib.getExe pkgs.alejandra;
+          }
+          {
+            name = "rust";
+            auto-format = true;
+            language-servers = [
+              "rust-analyzer"
+              # "spellcheck"
+            ];
+            indent = {
+              tab-width = 2;
+              unit = " ";
+            };
+          }
+          {
+            name = "toml";
+            auto-format = true;
+            formatter = {
+              command = lib.getExe pkgs.taplo;
+              args = [
+                "taplo"
+                "format"
+                "-"
+              ];
+            };
+          }
+          {
+            name = "hcl";
+            auto-format = true;
+            formatter = {
+              command = lib.getExe pkgs.opentofu;
+              args = [
+                "fmt"
+                "-"
+              ];
+            };
+          }
+          {
+            name = "yaml";
+            auto-format = true;
+            formatter = {
+              command = "prettier"; # NOTE: This should directly link to the prettier nix pkg but, fuggit
+              args = [
+                "--parser"
+                "yaml"
+              ];
+            };
+          }
           (typescript-language-server "tsx")
           (typescript-language-server "jsx")
           (typescript-language-server "typescript")
           (typescript-language-server "javascript")
         ];
+
+        language-server.spellcheck = {
+          command = lib.getExe pkgs.vale-ls;
+        };
 
         language-server.eslint = {
           args = [ "--stdio" ];
@@ -130,10 +176,14 @@ in {
           config = {
             run = "onType";
             quiet = false;
-            format = { enable = true; };
+            format = {
+              enable = true;
+            };
             nodePath = "";
             validate = "on";
-            problems = { shortenToSingleLine = false; };
+            problems = {
+              shortenToSingleLine = false;
+            };
             experimental = { };
             rulesCustomizations = [ ];
 
@@ -147,7 +197,9 @@ in {
                 enable = true;
                 location = "separateLine";
               };
-              showDocumentation = { enable = false; };
+              showDocumentation = {
+                enable = false;
+              };
             };
           };
         };
