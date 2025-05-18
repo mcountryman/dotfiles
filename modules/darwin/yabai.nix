@@ -1,6 +1,13 @@
-{ pkgs, ... }:
-
+{
+  me,
+  lib,
+  pkgs,
+  ...
+}:
 let
+  jq = lib.getExe pkgs.jq;
+  yabai = lib.getExe pkgs.yabai;
+
   # Keep the magic pixies in my lithium brick for a bit longer
   off = "0xff000000";
 
@@ -33,13 +40,13 @@ let
       spacebar -m config left_shell on
     '';
   };
-in {
+in
+{
   services.yabai = {
     enable = true;
     enableScriptingAddition = true;
 
     config = {
-
       # Mouse
       # focus_follows_mouse = "autoraise";
 
@@ -199,14 +206,15 @@ in {
     inactive_color = "0x00000000";
   };
 
-  system.activationScripts.postUserActivation.text = ''
-    # Create a max of 10 spaces
-
-    spaces=$(yabai -m query --spaces | ${pkgs.jq}/bin/jq length)
-
-    for _i in $(seq "$spaces" 9)
-    do
-      yabai -m space --create
-    done
-  '';
+  # system.activationScripts.postActivation.text = ''
+  #   sudo -i -u "${me}" bash << EOF
+  #     # Create a max of 10 spaces
+  #     spaces=$(${yabai} -m query --spaces | ${jq} length)
+  #
+  #     for _i in $(seq "\$spaces" 9)
+  #     do
+  #       ${yabai} -m space --create
+  #     done
+  #   EOF
+  # '';
 }

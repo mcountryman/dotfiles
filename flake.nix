@@ -8,9 +8,6 @@
     nur.url = "github:nix-community/NUR";
     nur.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Secrets
-    agenix.url = "github:ryantm/agenix";
-
     # Home management
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -35,63 +32,30 @@
     # from scratch.  Requires some bootstrap jazz.
     nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
     nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
+
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, agenix, nur, nix-darwin, nix-homebrew, nixpkgs, home-manager
-    , homebrew-core, homebrew-cask, homebrew-bundle, nix-rosetta-builder, ...
-    }@inputs:
-    let
-      user = "marvin";
-      systemsDarwin = [ "foldy-arm" ];
-      systemsLinux = [ ];
-      systems = f: nixpkgs.lib.genAttrs (systemsDarwin ++ systemsLinux) f;
-    in {
-      darwinConfigurations = nixpkgs.lib.genAttrs systemsDarwin (system:
-        nix-darwin.lib.darwinSystem {
-          inherit system;
+  outputs = inputs: {
+    darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
+      system = "aarch64-darwin";
+      specialArgs = {
+        me = "marvin";
+        inherit inputs;
+      };
 
-          specialArgs = {
-            inherit user;
-            inherit inputs;
-          };
+      modules = [
+        # Overlays
+        {
+          # nixpkgs.overlays = [inputs.nur.overlays.default];
+          nixpkgs.hostPlatform = "aarch64-darwin";
+        }
 
-          modules = [
-            # Overlays
-            { nixpkgs.overlays = [ nur.overlays.default ]; }
-
-            nix-rosetta-builder.darwinModules.default
-
-            home-manager.darwinModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "home-manager.bak";
-              home-manager.users.${user} = {
-                imports = [ nur.modules.homeManager.default ];
-                # The state version is required and should stay at the version you
-                # originally installed.
-                home.stateVersion = "24.11";
-              };
-            }
-            nix-homebrew.darwinModules.nix-homebrew
-            {
-              nix-homebrew = {
-                inherit user;
-
-                enable = true;
-                enableRosetta = false;
-
-                taps = {
-                  "homebrew/homebrew-core" = homebrew-core;
-                  "homebrew/homebrew-cask" = homebrew-cask;
-                  "homebrew/homebrew-bundle" = homebrew-bundle;
-                };
-
-                mutableTaps = false;
-              };
-            }
-            ./hosts/${system}
-          ];
-        });
+        ./modules/home
+        ./modules/nixos
+        ./modules/darwin
+        ./hosts/foldy-arm.nix
+      ];
     };
+  };
 }

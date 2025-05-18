@@ -1,11 +1,13 @@
-{ pkgs, user, ... }:
-
 {
-  home-manager.users.${user} = {
+  me,
+  pkgs,
+  ...
+}: {
+  home-manager.users.${me} = {
     programs.alacritty = {
       enable = true;
       settings = {
-        env = { TERM = "xterm-256color"; };
+        env = {TERM = "xterm-256color";};
 
         terminal.shell = "${pkgs.fish}/bin/fish";
 
