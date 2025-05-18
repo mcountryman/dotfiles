@@ -1,8 +1,4 @@
-{
-  me,
-  pkgs,
-  ...
-}:
+{ me, ... }:
 {
   home-manager.users.${me} = {
     programs.zellij.enable = true;

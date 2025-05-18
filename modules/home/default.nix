@@ -21,6 +21,7 @@
         home.stateVersion = "24.11";
       };
     }
+    ./git.nix
     ./helix
     ./firefox
     ./alacritty.nix
