@@ -50,7 +50,7 @@
       modules = [
         { nixpkgs.hostPlatform = "aarch64-darwin"; }
 
-        # inputs.stylix.darwinModules.stylix
+        inputs.stylix.darwinModules.stylix
         inputs.home-manager.darwinModules.home-manager
         inputs.nix-homebrew.darwinModules.nix-homebrew
 

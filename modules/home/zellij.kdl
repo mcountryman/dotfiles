@@ -1,4 +1,3 @@
-theme "ayu_dark"
 pane_frames false
 default_shell "fish"
 default_layout "compact"

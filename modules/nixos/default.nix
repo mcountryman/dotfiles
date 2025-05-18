@@ -11,6 +11,7 @@ in
 {
   imports = [
     ./fonts.nix
+    ./stylish.nix
   ];
 
   nix = {

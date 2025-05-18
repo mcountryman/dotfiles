@@ -10,6 +10,8 @@
   users.users.${me}.shell = "${pkgs.fish}/bin/fish";
 
   home-manager.users.${me} = {
+    stylix.targets.fish.enable = true;
+
     programs.fish = {
       enable = true;
 
@@ -69,6 +71,8 @@
       plugins = [ ];
     };
 
+    stylix.targets.starship.enable = true;
+
     # fish : prompt
     programs.starship = {
       enable = true;
@@ -94,9 +98,5 @@
       enableFishIntegration = true;
     };
 
-    programs.yazi = {
-      enable = true;
-      enableFishIntegration = true;
-    };
   };
 }

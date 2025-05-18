@@ -14,8 +14,9 @@
           inputs.nur.modules.homeManager.default
         ];
 
-        home.enableNixpkgsReleaseCheck = false; # until home-manager can handle nixpkgs 25.11
         home.homeDirectory = "/Users/${me}";
+        # until home-manager can handle nixpkgs 25.11
+        home.enableNixpkgsReleaseCheck = false;
 
         # The state version is required and should stay at the version you
         # originally installed.
@@ -27,6 +28,7 @@
     ./firefox
     ./alacritty.nix
     ./fish.nix
+    ./yazi.nix
     ./zellij.nix
   ];
 }
