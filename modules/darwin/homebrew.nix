@@ -2,12 +2,11 @@
   me,
   inputs,
   ...
-}: let
-  inherit (inputs) nix-homebrew homebrew-core homebrew-cask homebrew-bundle;
-in {
-  imports = [
-    nix-homebrew.darwinModules.nix-homebrew
-  ];
+}:
+let
+  inherit (inputs) homebrew-core homebrew-cask homebrew-bundle;
+in
+{
 
   homebrew = {
     enable = true;

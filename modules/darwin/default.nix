@@ -3,6 +3,7 @@
   imports = [
     ./yabai.nix
     ./homebrew.nix
+    ./linux-builder.nix
   ];
 
   system.primaryUser = me;

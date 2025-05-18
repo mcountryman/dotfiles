@@ -33,6 +33,9 @@
     nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
     nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Make it pretty
+    stylix.url = "github:nix-community/stylix";
+
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -45,11 +48,11 @@
       };
 
       modules = [
-        # Overlays
-        {
-          # nixpkgs.overlays = [inputs.nur.overlays.default];
-          nixpkgs.hostPlatform = "aarch64-darwin";
-        }
+        { nixpkgs.hostPlatform = "aarch64-darwin"; }
+
+        # inputs.stylix.darwinModules.stylix
+        inputs.home-manager.darwinModules.home-manager
+        inputs.nix-homebrew.darwinModules.nix-homebrew
 
         ./modules/home
         ./modules/nixos

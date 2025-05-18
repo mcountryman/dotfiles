@@ -5,13 +5,14 @@
 }:
 {
   imports = [
-    inputs.home-manager.darwinModules.home-manager
     {
       # home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "home-manager.bak";
       home-manager.users."${me}" = {
-        imports = [ inputs.nur.modules.homeManager.default ];
+        imports = [
+          inputs.nur.modules.homeManager.default
+        ];
 
         home.enableNixpkgsReleaseCheck = false; # until home-manager can handle nixpkgs 25.11
         home.homeDirectory = "/Users/${me}";
