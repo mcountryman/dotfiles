@@ -7,18 +7,18 @@
   stylix.autoEnable = false;
 
   stylix.fonts = {
-    monospace = {
-      package = pkgs.nerd-fonts.proggy-clean-tt;
-      name = "ProggyClean CE Nerd Font Mono";
-    };
-
     # monospace = {
-    #   package = pkgs.nerd-fonts.iosevka-term;
-    #   name = "IosevkaTerm Nerd Font";
+    #   package = pkgs.nerd-fonts.proggy-clean-tt;
+    #   name = "ProggyClean CE Nerd Font Mono";
     # };
 
+    monospace = {
+      package = pkgs.nerd-fonts.iosevka-term;
+      name = "IosevkaTerm Nerd Font";
+    };
+
     sizes = {
-      terminal = 16;
+      terminal = 12;
     };
   };
 }
