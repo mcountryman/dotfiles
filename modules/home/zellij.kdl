@@ -1,7 +1,8 @@
 theme "ayu_dark"
 pane_frames false
-default_shell "${pkgs.fish}/bin/fish"
+default_shell "fish"
 default_layout "compact"
+show_startup_tips false
 
 keybinds clear-defaults=true {
   normal {
