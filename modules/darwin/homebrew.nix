@@ -1,13 +1,8 @@
-{
-  me,
-  inputs,
-  ...
-}:
+{ config, inputs, ... }:
 let
   inherit (inputs) homebrew-core homebrew-cask homebrew-bundle;
 in
 {
-
   homebrew = {
     enable = true;
     # Cleanup unused packages on rebuild
@@ -19,7 +14,7 @@ in
     enableRosetta = false;
     mutableTaps = false;
 
-    user = me;
+    user = config.system.primaryUser;
     taps = {
       "homebrew/homebrew-core" = homebrew-core;
       "homebrew/homebrew-cask" = homebrew-cask;

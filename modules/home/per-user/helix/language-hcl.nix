@@ -1,21 +1,20 @@
+{ lib, pkgs, ... }:
 {
-  me,
-  lib,
-  pkgs,
-  ...
-}: {
-  environment.systemPackages = [
+  home.packages = [
     pkgs.terraform-ls
   ];
 
-  home-manager.users.${me}.programs.helix.languages = {
+  programs.helix.languages = {
     language = [
       {
         name = "hcl";
         auto-format = true;
         formatter = {
           command = lib.getExe pkgs.opentofu;
-          args = ["fmt" "-"];
+          args = [
+            "fmt"
+            "-"
+          ];
         };
       }
     ];

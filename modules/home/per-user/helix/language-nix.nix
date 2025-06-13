@@ -1,16 +1,11 @@
+{ lib, pkgs, ... }:
 {
-  me,
-  lib,
-  pkgs,
-  ...
-}:
-{
-  environment.systemPackages = [
+  home.packages = [
     pkgs.nil
     pkgs.nixd
   ];
 
-  home-manager.users.${me}.programs.helix.languages = {
+  programs.helix.languages = {
     language = [
       {
         name = "nix";

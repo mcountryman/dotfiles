@@ -1,9 +1,4 @@
-{
-  me,
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
   jq = lib.getExe pkgs.jq;
   yabai = lib.getExe pkgs.yabai;

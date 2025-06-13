@@ -1,9 +1,4 @@
-{
-  me,
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
   # vscode-css = "${pkgs.vscode-langservers-extracted}/bin/vscode-css-language-server";
   # vscode-html = "${pkgs.vscode-langservers-extracted}/bin/vscode-html-language-server";
@@ -26,12 +21,12 @@ let
   };
 in
 {
-  environment.systemPackages = [
+  home.packages = [
     # This is the base LSP helix is setup to use
     pkgs.typescript-language-server
   ];
 
-  home-manager.users.${me}.programs.helix.languages = {
+  programs.helix.languages = {
     language-server.eslint = {
       args = [ "--stdio" ];
       command = vscode-eslint;

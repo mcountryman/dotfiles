@@ -1,19 +1,21 @@
-{ ... }:
 {
+  nixpkgs.hostPlatform = "aarch64-darwin";
+
+  # is me
+  dotfiles.users.marvin = {
+    email = "me@maar.vin";
+    fullName = "Marvin Countryman";
+    primary = true;
+  };
+
+  # Random stuff I want on foldy-arm
   homebrew = {
     brews = [ "docker-buildx" ];
-
-    # Uncatogorized casks
     casks = [
       "steam"
+      "firefox"
       "moonlight"
       "tailscale"
     ];
   };
-
-  # # Set Git commit hash for darwin-version.
-  # configurationRevision = self.rev or self.dirtyRev or null;
-  # Used for backwards compatibility, please read the changelog before changing.
-  # $ darwin-rebuild changelog
-  system.stateVersion = 5;
 }

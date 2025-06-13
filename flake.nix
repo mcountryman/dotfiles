@@ -1,5 +1,5 @@
 {
-  description = "Nix config";
+  description = "My nixos driven dotfiles";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -35,29 +35,44 @@
 
     # Make it pretty
     stylix.url = "github:nix-community/stylix";
-
-    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = inputs: {
     darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
-      specialArgs = {
-        me = "marvin";
-        inherit inputs;
-      };
-
       modules = [
-        { nixpkgs.hostPlatform = "aarch64-darwin"; }
+        inputs.self.darwinModules.default
+        ./hosts/foldy-arm.nix
+      ];
+    };
 
+    nixosModules.default = {
+      _module.args.inputs = inputs;
+
+      imports = [
+        inputs.stylix.nixosModules.stylix
+        inputs.home-manager.nixosModules.home-manager
+
+        ./modules
+        ./modules/home
+        ./modules/common
+        ./modules/nixos
+      ];
+    };
+
+    darwinModules.default = {
+      _module.args.inputs = inputs;
+
+      imports = [
         inputs.stylix.darwinModules.stylix
         inputs.home-manager.darwinModules.home-manager
         inputs.nix-homebrew.darwinModules.nix-homebrew
+        inputs.nix-rosetta-builder.darwinModules.default
 
+        ./modules
         ./modules/home
-        ./modules/nixos
+        ./modules/common
         ./modules/darwin
-        ./hosts/foldy-arm.nix
       ];
     };
   };

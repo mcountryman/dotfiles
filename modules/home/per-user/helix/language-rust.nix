@@ -1,10 +1,8 @@
+{ pkgs, ... }:
 {
-  me,
-  lib,
-  pkgs,
-  ...
-}: {
-  home-manager.users.${me}.programs.helix.languages = {
+  home.packages = [ pkgs.lldb ];
+
+  programs.helix.languages = {
     language = [
       {
         name = "rust";
@@ -19,5 +17,11 @@
         };
       }
     ];
+
+    debugger = {
+      name = "lldb-vscode";
+      transport = "stdio";
+      command = "rust-lldb";
+    };
   };
 }

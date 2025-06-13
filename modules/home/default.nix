@@ -1,34 +1,24 @@
+{ inputs, config, ... }:
 {
-  me,
-  inputs,
-  ...
-}:
-{
-  imports = [
-    {
-      # home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      home-manager.backupFileExtension = "home-manager.bak";
-      home-manager.users."${me}" = {
-        imports = [
-          inputs.nur.modules.homeManager.default
-        ];
+  home-manager.useUserPackages = true;
+  home-manager.backupFileExtension = "home-manager.bak";
+  home-manager.users = builtins.mapAttrs (_: user: {
+    _module.args.user = user;
 
-        home.homeDirectory = "/Users/${me}";
-        # until home-manager can handle nixpkgs 25.11
-        home.enableNixpkgsReleaseCheck = false;
+    imports = [
+      inputs.nur.modules.homeManager.default
+      ./per-user/alacritty.nix
+      ./per-user/fish.nix
+      ./per-user/git.nix
+      ./per-user/helix
+      ./per-user/yazi.nix
+      ./per-user/zellij.nix
+    ];
 
-        # The state version is required and should stay at the version you
-        # originally installed.
-        home.stateVersion = "24.11";
-      };
-    }
-    ./git.nix
-    ./helix
-    ./firefox
-    ./alacritty.nix
-    ./fish.nix
-    ./yazi.nix
-    ./zellij.nix
-  ];
+    # until home-manager can handle nixpkgs 25.11
+    home.enableNixpkgsReleaseCheck = false;
+    # The state version is required and should stay at the version you
+    # originally installed.
+    home.stateVersion = "24.11";
+  }) config.dotfiles.users;
 }
