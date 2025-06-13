@@ -1,7 +1,4 @@
-{ config, inputs, ... }:
-let
-  inherit (inputs) homebrew-core homebrew-cask homebrew-bundle;
-in
+{ config, ... }:
 {
   homebrew = {
     enable = true;
@@ -15,10 +12,5 @@ in
     mutableTaps = false;
 
     user = config.system.primaryUser;
-    taps = {
-      "homebrew/homebrew-core" = homebrew-core;
-      "homebrew/homebrew-cask" = homebrew-cask;
-      "homebrew/homebrew-bundle" = homebrew-bundle;
-    };
   };
 }

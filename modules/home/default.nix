@@ -1,4 +1,4 @@
-{ inputs, config, ... }:
+{ config, ... }:
 {
   home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "home-manager.bak";
@@ -6,7 +6,6 @@
     _module.args.user = user;
 
     imports = [
-      inputs.nur.modules.homeManager.default
       ./per-user/alacritty.nix
       ./per-user/fish.nix
       ./per-user/git.nix

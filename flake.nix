@@ -4,10 +4,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
-    # nix-community pkgs
-    nur.url = "github:nix-community/NUR";
-    nur.inputs.nixpkgs.follows = "nixpkgs";
-
     # Home management
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
@@ -47,8 +43,6 @@
     };
 
     nixosModules.default = {
-      _module.args.inputs = inputs;
-
       imports = [
         inputs.stylix.nixosModules.stylix
         inputs.home-manager.nixosModules.home-manager
@@ -61,8 +55,6 @@
     };
 
     darwinModules.default = {
-      _module.args.inputs = inputs;
-
       imports = [
         inputs.stylix.darwinModules.stylix
         inputs.home-manager.darwinModules.home-manager
@@ -73,6 +65,16 @@
         ./modules/home
         ./modules/common
         ./modules/darwin
+
+        {
+          # Until I figure out a good way to pass down `inputs` we'll just make
+          # sure all inputs are accessed from `flake.nix`.
+          nix-homebrew.taps = {
+            "homebrew/homebrew-core" = inputs.homebrew-core;
+            "homebrew/homebrew-cask" = inputs.homebrew-cask;
+            "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
+          };
+        }
       ];
     };
   };
