@@ -41,6 +41,7 @@
     darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       modules = [
+        inputs.sops-nix.darwinModules.sops
         inputs.self.darwinModules.default
         ./hosts/foldy-arm
       ];
@@ -48,7 +49,6 @@
 
     nixosModules.default = {
       imports = [
-        inputs.sops-nix.nixosModules.sops
         inputs.stylix.nixosModules.stylix
         inputs.home-manager.nixosModules.home-manager
 
@@ -61,7 +61,6 @@
 
     darwinModules.default = {
       imports = [
-        inputs.sops-nix.darwinModules.sops
         inputs.stylix.darwinModules.stylix
         inputs.home-manager.darwinModules.home-manager
         inputs.nix-homebrew.darwinModules.nix-homebrew
