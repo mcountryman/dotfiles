@@ -31,6 +31,10 @@
 
     # Make it pretty
     stylix.url = "github:nix-community/stylix";
+
+    # shhh
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs: {
@@ -38,12 +42,13 @@
       system = "aarch64-darwin";
       modules = [
         inputs.self.darwinModules.default
-        ./hosts/foldy-arm.nix
+        ./hosts/foldy-arm
       ];
     };
 
     nixosModules.default = {
       imports = [
+        inputs.sops-nix.nixosModules.sops
         inputs.stylix.nixosModules.stylix
         inputs.home-manager.nixosModules.home-manager
 
@@ -56,6 +61,7 @@
 
     darwinModules.default = {
       imports = [
+        inputs.sops-nix.darwinModules.sops
         inputs.stylix.darwinModules.stylix
         inputs.home-manager.darwinModules.home-manager
         inputs.nix-homebrew.darwinModules.nix-homebrew

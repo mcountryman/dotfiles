@@ -5,4 +5,7 @@
     ./stylish.nix
     ./nix-daemon.nix
   ];
+
+  environment.variables.EDITOR = "hx";
+  environment.variables.VISUAL = "hx";
 }
