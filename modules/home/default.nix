@@ -9,6 +9,7 @@
       ./per-user/alacritty.nix
       ./per-user/fish.nix
       ./per-user/git.nix
+      ./per-user/keychain.nix
       ./per-user/helix
       ./per-user/yazi.nix
       ./per-user/zellij.nix

@@ -36,8 +36,6 @@
         end
       end
 
-      ssh-add --apple-load-keychain 2> /dev/null
-
       ${pkgs.starship}/bin/starship init fish | source
     '';
 
