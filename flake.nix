@@ -35,6 +35,9 @@
     # shhh
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    helix-flake.url = "github:helix-editor/helix";
+    helix-flake.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs: {
@@ -56,6 +59,8 @@
         ./modules/home
         ./modules/common
         ./modules/nixos
+
+        { nixpkgs.overlays = [ inputs.helix-flake.overlays.default ]; }
       ];
     };
 
@@ -70,8 +75,9 @@
         ./modules/home
         ./modules/common
         ./modules/darwin
-
         {
+          nixpkgs.overlays = [ inputs.helix-flake.overlays.default ];
+
           # Until I figure out a good way to pass down `inputs` we'll just make
           # sure all inputs are accessed from `flake.nix`.
           nix-homebrew.taps = {

@@ -1,6 +1,7 @@
 { config, ... }:
 {
-  home-manager.useUserPackages = true;
+  home-manager.useGlobalPkgs = true;
+  # home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "home-manager.bak";
   home-manager.users = builtins.mapAttrs (_: user: {
     _module.args.user = user;
