@@ -2,6 +2,7 @@
 {
   imports = [
     ./language-hcl.nix
+    ./language-jinja.nix
     ./language-js.nix
     ./language-nix.nix
     ./language-rust.nix
@@ -21,7 +22,8 @@
 
     languages = {
       language-server.spellcheck = {
-        command = lib.getExe pkgs.vale-ls;
+        command = "${lib.getExe pkgs.codebook}";
+        args = [ "serve" ];
       };
     };
 

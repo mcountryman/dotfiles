@@ -9,7 +9,7 @@
         auto-format = true;
         language-servers = [
           "rust-analyzer"
-          # "spellcheck"
+          "spellcheck"
         ];
         indent = {
           tab-width = 2;
