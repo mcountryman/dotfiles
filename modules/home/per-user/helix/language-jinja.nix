@@ -11,6 +11,17 @@
       timeout = 5;
     };
 
+    language-server.tailwindcss = {
+      command = "${lib.getExe pkgs.tailwindcss-language-server}";
+      args = [ "--stdio" ];
+      config = {
+        userLanguages = {
+          jinja = "html";
+          "*.jinja" = "html";
+        };
+      };
+    };
+
     language = [
       {
         name = "jinja";
@@ -18,6 +29,7 @@
         language-servers = [
           "jinja-lsp"
           "spellcheck"
+          "tailwindcss"
         ];
         indent = {
           tab-width = 2;
