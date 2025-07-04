@@ -35,21 +35,6 @@
           tab-width = 2;
           unit = " ";
         };
-
-        formatter = {
-          command = lib.getExe pkgs.djlint;
-          args = [
-            "--extension=html.j2"
-            "--indent"
-            "2"
-            "--indent-js"
-            "2"
-            "--indent-css"
-            "2"
-            "--reformat"
-            "-"
-          ];
-        };
       }
     ];
   };

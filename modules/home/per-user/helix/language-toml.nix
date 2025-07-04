@@ -7,11 +7,7 @@
         auto-format = true;
         formatter = {
           command = lib.getExe pkgs.taplo;
-          args = [
-            "taplo"
-            "format"
-            "-"
-          ];
+          args = lib.splitString " " "format -";
         };
       }
     ];
