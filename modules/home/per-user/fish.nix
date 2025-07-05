@@ -68,4 +68,11 @@
     enable = true;
     enableFishIntegration = true;
   };
+
+  # fish : direnv
+  programs.direnv = {
+    enable = true;
+
+    nix-direnv.enable = true;
+  };
 }
