@@ -1,6 +1,9 @@
 { pkgs, ... }:
 {
-  home.packages = [ pkgs.lldb ];
+  home.packages = with pkgs; [
+    lldb
+    rust-analyzer
+  ];
 
   programs.helix.languages = {
     language = [
