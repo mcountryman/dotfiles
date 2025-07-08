@@ -1,3 +1,4 @@
+{ pkgs, ... }:
 {
   imports = [
     ./fish.nix
@@ -8,4 +9,7 @@
 
   environment.variables.EDITOR = "hx";
   environment.variables.VISUAL = "hx";
+  environment.systemPackages = with pkgs; [
+    rustup
+  ];
 }
