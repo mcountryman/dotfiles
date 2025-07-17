@@ -44,6 +44,9 @@
     darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       modules = [
+        # Excluded to avoid conflicts when using this flake as a module. There 
+        # is likely a better way to do this so that consumers don't have to find
+        # out that `sops` is required.
         inputs.sops-nix.darwinModules.sops
         inputs.self.darwinModules.default
         ./hosts/foldy-arm

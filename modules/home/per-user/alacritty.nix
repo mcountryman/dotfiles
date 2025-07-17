@@ -1,3 +1,5 @@
+# alacritty - GUI terminal emulator
+
 { pkgs, ... }:
 {
   stylix.targets.alacritty.enable = true;

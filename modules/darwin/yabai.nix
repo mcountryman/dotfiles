@@ -1,3 +1,9 @@
+# yabai window manager setup
+#
+# I really need to dig into rules a bit more.  The ignore rules I have kinda 
+# work although somethimes things just break.  Steam for example is completly
+# unmanagable although I suspect this is a Steam issue.
+
 { lib, pkgs, ... }:
 let
   jq = lib.getExe pkgs.jq;

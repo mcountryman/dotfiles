@@ -1,3 +1,5 @@
+# Cross-platform builds from darwin => linux
+
 {
   # # Uncomment this if you don't already have nix-rosetta-builder setup.
   # #

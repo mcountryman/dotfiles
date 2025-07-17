@@ -1,3 +1,7 @@
+# fish - an alternate shell to bash with batteries included
+#
+# Configuration includes binaries/integrations I use on a daily.
+
 { pkgs, ... }:
 {
   stylix.targets.fish.enable = true;
@@ -44,7 +48,10 @@
 
   stylix.targets.starship.enable = true;
 
-  # fish : prompt
+  # Straight forward prompt giving me most of the information I want to see
+  #
+  # TODO: Consider trimming down the modules.  I probably don't need all of what
+  # is shown by default.
   programs.starship = {
     enable = true;
     settings = {
@@ -56,23 +63,31 @@
     };
   };
 
-  # fish : cd
+  # Fancy `cd` with more better shortcuts
   programs.zoxide = {
     enable = true;
     enableFishIntegration = true;
     options = [ "--cmd cd" ];
   };
 
-  # fish : la
+  # Fancy `ls` with colors++
   programs.eza = {
     enable = true;
     enableFishIntegration = true;
   };
 
-  # fish : direnv
+  # Automatic environment setup when `cd`-ing into a dir
   programs.direnv = {
     enable = true;
 
     nix-direnv.enable = true;
+  };
+
+  stylix.targets.yazi.enable = true;
+
+  # File management
+  programs.yazi = {
+    enable = true;
+    enableFishIntegration = true;
   };
 }

@@ -1,3 +1,5 @@
+# stylish - shared theming
+
 { pkgs, ... }:
 
 {

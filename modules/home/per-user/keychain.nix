@@ -1,3 +1,4 @@
+# keychain - auto-magic ssh key management
 {
   programs.keychain = {
     enable = true;

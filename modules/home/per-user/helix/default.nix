@@ -1,3 +1,11 @@
+# helix editor
+#
+# Ideally done in such a way that LSP/formatter binaries are not on PATH, rather
+# directly referenced from the nix store.
+#
+# TODO: Configure yazi + zellij to open files in an active hx session.  For the
+# time being I'm using yazi to do quick file edits and `space + f` to open files.
+
 { lib, pkgs, ... }:
 {
   imports = [

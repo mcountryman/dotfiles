@@ -1,3 +1,5 @@
+# Drive homebrew via nix
+
 { config, ... }:
 {
   homebrew = {

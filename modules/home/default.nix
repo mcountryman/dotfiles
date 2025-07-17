@@ -4,6 +4,7 @@
   # home-manager.useUserPackages = true;
   home-manager.backupFileExtension = "home-manager.bak";
   home-manager.users = builtins.mapAttrs (_: user: {
+    # Provide a `user` arg for more modularity
     _module.args.user = user;
 
     imports = [
