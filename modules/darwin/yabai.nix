@@ -69,11 +69,8 @@ in
 
     extraConfig = ''
       # Automations
-      yabai -m rule --add label="Ghidra" app="^[Gg]hidra$" manage=off
-      yabai -m rule --add label="Ghidra" title="^[Gg]hidra$" manage=off
       yabai -m rule --add label="Bitwarden" app="^Bitwarden$" manage=off
       yabai -m rule --add label="Calculator" app="^Calculator$" manage=off
-      yabai -m rule --add label="1Password" app="^1Password$" manage=off
       yabai -m rule --add label="System Settings" app="^System Settings$" manage=off
       yabai -m rule --add label="Activity Monitor" app="^System Settings$" manage=off
       yabai -m rule --add app="^Steam$" manage=off
