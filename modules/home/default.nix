@@ -9,6 +9,7 @@
 
     imports = [
       ./per-user/alacritty.nix
+      ./per-user/firefox
       ./per-user/fish.nix
       ./per-user/git.nix
       ./per-user/keychain.nix

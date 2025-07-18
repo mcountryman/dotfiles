@@ -44,7 +44,7 @@
     darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       modules = [
-        # Excluded to avoid conflicts when using this flake as a module. There 
+        # Excluded to avoid conflicts when using this flake as a module. There
         # is likely a better way to do this so that consumers don't have to find
         # out that `sops` is required.
         inputs.sops-nix.darwinModules.sops
@@ -63,7 +63,11 @@
         ./modules/common
         ./modules/nixos
 
-        { nixpkgs.overlays = [ inputs.helix-flake.overlays.default ]; }
+        {
+          nixpkgs.overlays = [
+            inputs.helix-flake.overlays.default
+          ];
+        }
       ];
     };
 
@@ -79,7 +83,9 @@
         ./modules/common
         ./modules/darwin
         {
-          nixpkgs.overlays = [ inputs.helix-flake.overlays.default ];
+          nixpkgs.overlays = [
+            inputs.helix-flake.overlays.default
+          ];
 
           # Until I figure out a good way to pass down `inputs` we'll just make
           # sure all inputs are accessed from `flake.nix`.

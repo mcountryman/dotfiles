@@ -20,7 +20,6 @@
     brews = [ "docker-buildx" ];
     casks = [
       "steam"
-      "firefox"
       "moonlight"
       "tailscale"
     ];
