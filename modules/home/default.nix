@@ -16,6 +16,9 @@
       ./per-user/helix
       ./per-user/yazi.nix
       ./per-user/zellij.nix
+
+      # FIXME: Only enable on linux
+      ./per-user/hyprland
     ];
 
     # until home-manager can handle nixpkgs 25.11

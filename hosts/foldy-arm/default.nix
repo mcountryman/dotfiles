@@ -11,6 +11,8 @@
     primary = true;
   };
 
+  users.users.marvin.extraGroups = [ "video" ];
+
   services.openssh = {
     enable = true;
   };

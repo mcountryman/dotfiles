@@ -13,6 +13,7 @@
   # TODO: Find a good setup for per-project rust configuration. Until then I'll
   # deal with the non-declarative nature of `rustup` + `cargo`
   environment.systemPackages = with pkgs; [
+    btop
     rustup
   ];
 }

@@ -31,6 +31,7 @@
 
     # Make it pretty
     stylix.url = "github:nix-community/stylix";
+    stylix.inputs.nixpkgs.follows = "nixpkgs";
 
     # shhh
     sops-nix.url = "github:Mic92/sops-nix";
@@ -53,6 +54,14 @@
       ];
     };
 
+    nixosConfigurations."foldy-nix" = inputs.nixpkgs.lib.nixosSystem {
+      system = "aarch64-linux";
+      modules = [
+        inputs.self.nixosModules.default
+        ./hosts/foldy-nix
+      ];
+    };
+
     nixosModules.default = {
       imports = [
         inputs.stylix.nixosModules.stylix
@@ -64,7 +73,7 @@
         ./modules/nixos
 
         {
-          nixpkgs.overlays = [
+          nixpkgs.overlays = import ./overlays ++ [
             inputs.helix-flake.overlays.default
           ];
         }
@@ -83,7 +92,7 @@
         ./modules/common
         ./modules/darwin
         {
-          nixpkgs.overlays = [
+          nixpkgs.overlays = import ./overlays ++ [
             inputs.helix-flake.overlays.default
           ];
 

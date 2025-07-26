@@ -40,6 +40,12 @@ in
       default = [ ];
       description = "The list of users that will be effected by this module.";
     };
+
+    headless = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Determines if the system environment needs a GUI or not.";
+    };
   };
 
   config = { };
