@@ -37,8 +37,8 @@
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
-    helix-flake.url = "github:helix-editor/helix";
-    helix-flake.inputs.nixpkgs.follows = "nixpkgs";
+    helix.url = "github:helix-editor/helix";
+    helix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs: {
@@ -74,7 +74,7 @@
 
         {
           nixpkgs.overlays = import ./overlays ++ [
-            inputs.helix-flake.overlays.default
+            inputs.helix.overlays.default
           ];
         }
       ];
@@ -93,7 +93,7 @@
         ./modules/darwin
         {
           nixpkgs.overlays = import ./overlays ++ [
-            inputs.helix-flake.overlays.default
+            inputs.helix.overlays.default
           ];
 
           # Until I figure out a good way to pass down `inputs` we'll just make

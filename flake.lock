@@ -154,7 +154,7 @@
         "type": "github"
       }
     },
-    "helix-flake": {
+    "helix": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -162,11 +162,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1752964427,
-        "narHash": "sha256-57CXYsG+2SDJ65j4F525oS4DAT2id/KXCH9Op/xlloA=",
+        "lastModified": 1753970513,
+        "narHash": "sha256-nOfO2nJZKYbgmCD9aMMTXNJi6dpl85jgFfIhcqcZYx4=",
         "owner": "helix-editor",
         "repo": "helix",
-        "rev": "22b184b570fea73090a20702e01b9ac80d6eb31c",
+        "rev": "758f80a4fc9da88ab835248b646468f033162019",
         "type": "github"
       },
       "original": {
@@ -431,7 +431,7 @@
     },
     "root": {
       "inputs": {
-        "helix-flake": "helix-flake",
+        "helix": "helix",
         "home-manager": "home-manager",
         "homebrew-bundle": "homebrew-bundle",
         "homebrew-cask": "homebrew-cask",
@@ -447,7 +447,7 @@
     "rust-overlay": {
       "inputs": {
         "nixpkgs": [
-          "helix-flake",
+          "helix",
           "nixpkgs"
         ]
       },

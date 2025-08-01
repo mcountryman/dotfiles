@@ -36,7 +36,7 @@
     };
 
     settings = {
-      theme = "ayu_dark";
+      theme = "fancy";
       editor = {
         mouse = false;
         shell = [
@@ -102,6 +102,13 @@
           };
         };
       };
+
     };
+
+    themes.fancy = ''
+      inherits = "gruvbox_material_dark_hard"
+
+      "ui.background" = {}
+    '';
   };
 }

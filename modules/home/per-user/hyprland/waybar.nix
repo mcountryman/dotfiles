@@ -127,7 +127,7 @@
         #pulseaudio {
           border: 1px solid #${base03};
           padding: 5px 10px;
-          background: #${base00};
+          background: alpha(#${base00}, 0.8);
 
           margin-top: 5px;
         }
