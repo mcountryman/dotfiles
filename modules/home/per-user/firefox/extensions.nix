@@ -10,6 +10,11 @@
       installation_mode = "force_installed";
     };
 
+    "addon@darkreader.org" = {
+      install_url = "https://addons.mozilla.org/firefox/downloads/file/4535824/darkreader-4.9.110.xpi";
+      installation_mode = "force_installed";
+    };
+
     "gdpr@cavi.au.dk" = {
       install_url = "https://addons.mozilla.org/firefox/downloads/latest/consent-o-matic/latest.xpi";
       installation_mode = "force_installed";
