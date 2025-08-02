@@ -35,14 +35,8 @@
 
   environment.systemPackages = with pkgs; [
     git
-    wl-clipboard
     mako # notifications
-    helix
-    zellij
-    firefox
-
-    kitty
-    alacritty
+    wl-clipboard
   ];
 
   programs.hyprlock = {

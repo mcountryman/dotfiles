@@ -1,3 +1,4 @@
+{ pkgs, ... }:
 {
   imports = [
     ./policies.nix
@@ -7,7 +8,7 @@
 
   programs.firefox = {
     enable = true;
-    # package = pkgs.firefox-devedition;
+    package = pkgs.librewolf-wayland;
 
     # Profile
     profiles.default = {
