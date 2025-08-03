@@ -9,6 +9,8 @@
 
     extraConfig = {
       user.signingkey = "me@maar.vin";
+      commit.gpgsign = true;
+
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
     };
