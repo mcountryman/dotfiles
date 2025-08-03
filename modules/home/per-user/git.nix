@@ -15,9 +15,4 @@
       push.autoSetupRemote = true;
     };
   };
-
-  # Make gpg and ykman play nicely
-  home.file.".gnupg/scdaemon.conf".text = ''
-    disable-ccid
-  '';
 }

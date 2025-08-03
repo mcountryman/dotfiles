@@ -7,11 +7,14 @@
     # Provide a `user` arg for more modularity
     _module.args.user = user;
 
+    dotfiles = config.dotfiles;
     imports = [
+      ../default.nix
       ./per-user/alacritty.nix
       ./per-user/firefox
       ./per-user/fish.nix
       ./per-user/git.nix
+      ./per-user/gpg.nix
       ./per-user/keychain.nix
       ./per-user/helix
       ./per-user/yazi.nix

@@ -41,6 +41,12 @@ in
       description = "The list of users that will be effected by this module.";
     };
 
+    yubi = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Whether or not the host should use a yubi key";
+    };
+
     headless = mkOption {
       type = types.bool;
       default = true;

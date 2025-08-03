@@ -7,6 +7,7 @@
 
   nixpkgs.hostPlatform = "aarch64-linux";
 
+  dotfiles.yubi = true;
   dotfiles.headless = false;
   dotfiles.users.marvin = {
     email = "me@maar.vin";
