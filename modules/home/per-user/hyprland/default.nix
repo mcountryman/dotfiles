@@ -37,6 +37,8 @@
       monitor = "eDP-1, 3456x2160@60, 0x0, 1.5";
       general = {
         allow_tearing = true;
+
+        gaps_out = "0,20,20,20";
       };
 
       input = {

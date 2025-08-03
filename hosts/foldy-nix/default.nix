@@ -16,6 +16,7 @@
 
   environment.systemPackages = with pkgs; [
     bitwarden
+    signal-desktop
   ];
 
   services.udev.extraRules = ''

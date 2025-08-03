@@ -39,6 +39,9 @@
 
     helix.url = "github:helix-editor/helix";
     helix.inputs.nixpkgs.follows = "nixpkgs";
+
+    hyprland.url = "github:hyprwm/hyprland";
+    hyprland.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs: {
@@ -62,6 +65,10 @@
       ];
     };
 
+    overlays = import ./overlays ++ [
+      inputs.helix.overlays.default
+    ];
+
     nixosModules.default = {
       imports = [
         inputs.stylix.nixosModules.stylix
@@ -73,9 +80,7 @@
         ./modules/nixos
 
         {
-          nixpkgs.overlays = import ./overlays ++ [
-            inputs.helix.overlays.default
-          ];
+          nixpkgs.overlays = inputs.self.overlays;
         }
       ];
     };
@@ -92,9 +97,7 @@
         ./modules/common
         ./modules/darwin
         {
-          nixpkgs.overlays = import ./overlays ++ [
-            inputs.helix.overlays.default
-          ];
+          nixpkgs.overlays = inputs.self.overlays;
 
           # Until I figure out a good way to pass down `inputs` we'll just make
           # sure all inputs are accessed from `flake.nix`.

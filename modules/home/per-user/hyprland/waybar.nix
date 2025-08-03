@@ -17,7 +17,8 @@
     enable = true;
     settings = {
       mainBar = {
-        height = 54;
+        margin = "20,0,20,20";
+        height = 42;
         modules-left = [
           "hyprland/workspaces"
         ];
@@ -128,20 +129,10 @@
           border: 1px solid #${base03};
           padding: 5px 10px;
           background: alpha(#${base00}, 0.8);
-
-          margin-top: 5px;
-        }
-
-        .modules-right {
-          margin-right: 20px;
         }
 
         .modules-right .module {
           margin-left: 10px;
-        }
-
-        .modules-left {
-          margin-left: 20px;
         }
 
         .modules-left .module {

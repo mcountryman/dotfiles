@@ -3,6 +3,7 @@
   imports = [
     ./fish.nix
     ./fonts.nix
+    ./gnupg.nix
     ./stylish.nix
     ./nix-daemon.nix
   ];
