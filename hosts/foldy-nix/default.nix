@@ -16,6 +16,8 @@
   };
 
   environment.systemPackages = with pkgs; [
+    podman
+    podman-tui
     bitwarden
     signal-desktop
   ];
@@ -24,6 +26,11 @@
     SUBSYSTEM=="backlight", ACTION=="add", MODE="0666", \
       RUN+="${pkgs.coreutils}/bin/chmod a+w /sys/class/backlight/%k/brightness"
   '';
+
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+  };
 
   security.pam.services.hyprlock = { };
   services.displayManager.ly.enable = true;
