@@ -63,7 +63,10 @@
 
       misc = {
         disable_hyprland_logo = true;
+      };
 
+      render = {
+        explicit_sync = 0;
       };
     };
   };

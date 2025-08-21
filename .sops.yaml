@@ -1,9 +1,14 @@
 keys:
   - &marvin age1d7u4k6a6lvk9qxpdxecv65fdna70h7vs7863742ex02tjydgc9rs60jn90
   - &host_foldy_arm age1dcy3z3w524wk8q7ae2wvlhy3avat55ngvh66dc700qspcjgwtvvq7rd9dw
+  - &host_foldy_nix age1f39fq67pk02nyuju6jpa795q54xjkplr5ah275l5dhlzv3e66udqvx5fmz
+
 creation_rules:
   - path_regex: secrets.yaml$
     key_groups:
-      - age:
+      - pgp:
+          - 869F2EB27589DF03!
+        age:
           - *marvin
           - *host_foldy_arm
+          - *host_foldy_nix

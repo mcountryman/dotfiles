@@ -1,9 +1,5 @@
 { pkgs, ... }:
 {
-  home.packages = with pkgs; [
-    lldb
-  ];
-
   programs.helix.languages = {
     language = [
       {
@@ -15,8 +11,8 @@
 
         auto-format = true;
         language-servers = [
-          "rust-analyzer"
           "spellcheck"
+          "rust-analyzer"
         ];
       }
     ];
@@ -24,7 +20,7 @@
     debugger = {
       name = "lldb-vscode";
       transport = "stdio";
-      command = "rust-lldb";
+      command = "${pkgs.lldb}/bin/rust-lldb";
     };
   };
 }

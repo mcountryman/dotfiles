@@ -9,6 +9,9 @@
 { lib, pkgs, ... }:
 {
   imports = [
+    ./lsp-ai.nix
+    ./lsp-spellcheck.nix
+
     ./language-hcl.nix
     ./language-jinja.nix
     ./language-js.nix
@@ -20,20 +23,11 @@
 
   home.packages = [
     pkgs.bash-language-server
-
-    (pkgs.vale.withStyles (s: [ s.google ]))
   ];
 
   programs.helix = {
     enable = true;
     defaultEditor = true;
-
-    languages = {
-      language-server.spellcheck = {
-        command = "${lib.getExe pkgs.codebook}";
-        args = [ "serve" ];
-      };
-    };
 
     settings = {
       theme = "fancy";

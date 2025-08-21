@@ -31,6 +31,8 @@
   };
 
   home.file.".librewolf/librewolf.overrides.cfg".text = ''
+    defaultPref("privacy.clearOnShutdown.cookies", false);
+    defaultPref("privacy.clearOnShutdown.sessions", false);
     defaultPref("privacy.clearOnShutdown.history", false);
     defaultPref("privacy.clearOnShutdown.downloads", false);
   '';

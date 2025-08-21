@@ -42,16 +42,15 @@
 
     hyprland.url = "github:hyprwm/hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
+
+    zed.url = "github:zed-industries/zed";
+    zed.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs: {
     darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       modules = [
-        # Excluded to avoid conflicts when using this flake as a module. There
-        # is likely a better way to do this so that consumers don't have to find
-        # out that `sops` is required.
-        inputs.sops-nix.darwinModules.sops
         inputs.self.darwinModules.default
         ./hosts/foldy-arm
       ];
@@ -67,10 +66,12 @@
 
     overlays = import ./overlays ++ [
       inputs.helix.overlays.default
+      inputs.zed.overlays.default
     ];
 
     nixosModules.default = {
       imports = [
+        inputs.sops-nix.nixosModules.sops
         inputs.stylix.nixosModules.stylix
         inputs.home-manager.nixosModules.home-manager
 
@@ -87,6 +88,7 @@
 
     darwinModules.default = {
       imports = [
+        inputs.sops-nix.darwinModules.sops
         inputs.stylix.darwinModules.stylix
         inputs.home-manager.darwinModules.home-manager
         inputs.nix-homebrew.darwinModules.nix-homebrew

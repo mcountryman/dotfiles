@@ -2,10 +2,12 @@
 {
   imports = [
     ./yubi.nix
+    ./goose-cli.nix
     ./nixos/configuration.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-linux";
+  nixpkgs.config.allowUnfree = true;
 
   dotfiles.yubi = true;
   dotfiles.headless = false;
@@ -16,8 +18,6 @@
   };
 
   environment.systemPackages = with pkgs; [
-    podman
-    podman-tui
     bitwarden
     signal-desktop
   ];
@@ -27,11 +27,22 @@
       RUN+="${pkgs.coreutils}/bin/chmod a+w /sys/class/backlight/%k/brightness"
   '';
 
-  virtualisation.podman = {
-    enable = true;
-    dockerCompat = true;
-  };
+  security.pam.loginLimits = [
+    {
+      domain = "*";
+      type = "soft";
+      item = "nofile";
+      value = toString (1024 * 1024);
+    }
+  ];
 
   security.pam.services.hyprlock = { };
   services.displayManager.ly.enable = true;
+
+  services.pipewire.jack.enable = true;
+
+  fileSystems."/mnt/nfs" = {
+    device = "nas.shramp:/mnt/pool0/library";
+    fsType = "nfs";
+  };
 }
