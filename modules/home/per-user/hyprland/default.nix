@@ -1,13 +1,13 @@
 { pkgs, ... }:
 {
   imports = [
-    ./idle.nix
-    ./lock.nix
     ./binds.nix
-    ./notify.nix
+
+    ./mako.nix
     ./waybar.nix
-    ./windows.nix
-    ./launcher.nix
+    ./anyrun.nix
+    ./hyprlock.nix
+    ./hypridle.nix
   ];
 
   stylix.targets.gtk.enable = true;
@@ -50,10 +50,6 @@
         };
       };
 
-      gestures = {
-        workspace_swipe = true;
-      };
-
       animation = [
         "fade, 1, 2, default"
         "border, 1, 2, default"
@@ -64,6 +60,13 @@
         disable_hyprland_logo = true;
       };
     };
+  };
+
+  wayland.windowManager.hyprland.settings = {
+    windowrule = [
+      "float, class:Bitwarden"
+      "float, class:yubioath-flutter"
+    ];
   };
 
   services.hyprpaper.enable = true;

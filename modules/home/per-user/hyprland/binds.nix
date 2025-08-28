@@ -4,9 +4,9 @@
     "$mod" = "SUPER";
 
     bind = [
-      "$mod, Space, exec, anyrun"
-      "$mod, Return, exec, alacritty"
-      "$mod, Backspace, exec, swaylock"
+      "$mod, Space, exec, ${lib.getExe pkgs.anyrun}"
+      "$mod, Return, exec, ${lib.getExe pkgs.alacritty}"
+      "$mod, Backspace, exec, ${lib.getExe pkgs.hyprlock}"
 
       "$mod, C, exec, copyq copy"
       "$mod, V, exec, wl-paste"

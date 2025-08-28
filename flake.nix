@@ -63,6 +63,9 @@
         inputs.self.nixosModules.default
         inputs.nixos-apple-silicon.nixosModules.default
         ./hosts/foldy-nix
+        {
+          nixpkgs.overlays = [ inputs.hyprland.overlays.default ];
+        }
       ];
     };
 

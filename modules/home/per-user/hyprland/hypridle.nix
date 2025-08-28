@@ -1,6 +1,6 @@
 { lib, pkgs, ... }:
 let
-  lock = lib.getExe pkgs.swaylock;
+  lock = lib.getExe pkgs.hyprlock;
 in
 {
   services.hypridle = {
