@@ -12,6 +12,10 @@
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Apple silicon
+    nixos-apple-silicon.url = "github:nix-community/nixos-apple-silicon";
+    nixos-apple-silicon.inputs.nixpkgs.follows = "nixpkgs";
+
     # Homebrew
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
 
@@ -42,9 +46,6 @@
 
     hyprland.url = "github:hyprwm/hyprland";
     hyprland.inputs.nixpkgs.follows = "nixpkgs";
-
-    zed.url = "github:zed-industries/zed";
-    zed.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs: {
@@ -60,13 +61,13 @@
       system = "aarch64-linux";
       modules = [
         inputs.self.nixosModules.default
+        inputs.nixos-apple-silicon.nixosModules.default
         ./hosts/foldy-nix
       ];
     };
 
     overlays = import ./overlays ++ [
       inputs.helix.overlays.default
-      inputs.zed.overlays.default
     ];
 
     nixosModules.default = {

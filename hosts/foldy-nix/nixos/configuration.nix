@@ -12,7 +12,6 @@
 {
   imports = [
     # Include the results of the hardware scan.
-    ./apple-silicon-support
     ./hardware-configuration.nix
   ];
 
@@ -21,7 +20,7 @@
   boot.loader.efi.canTouchEfiVariables = false;
 
   hardware.asahi.enable = true;
-  hardware.asahi.useExperimentalGPUDriver = true;
+  # hardware.asahi.useExperimentalGPUDriver = true;
   hardware.asahi.peripheralFirmwareDirectory = ./firmware;
 
   # networking.hostName = "nixos"; # Define your hostname.
