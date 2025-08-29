@@ -58,8 +58,8 @@
       ", XF86AudioPrev, exec, ${lib.getExe pkgs.playerctl} previous"
       ", XF86AudioNext, exec, ${lib.getExe pkgs.playerctl} next"
 
-      ", XF86MonBrightnessUp, exec, ${lib.getExe pkgs.brightnessctl} -c backlight set 10+"
-      ", XF86MonBrightnessDown, exec, ${lib.getExe pkgs.brightnessctl} -c backlight set 10-"
+      ", XF86MonBrightnessUp, exec, ${lib.getExe pkgs.brightnessctl} -c backlight set 10%+"
+      ", XF86MonBrightnessDown, exec, ${lib.getExe pkgs.brightnessctl} -c backlight set 10%-"
     ];
   };
 }
