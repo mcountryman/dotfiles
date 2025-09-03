@@ -20,6 +20,7 @@
   environment.systemPackages = with pkgs; [
     bitwarden
     signal-desktop
+    qemu
   ];
 
   services.udev.extraRules = ''
@@ -40,6 +41,12 @@
   services.displayManager.ly.enable = true;
 
   services.pipewire.jack.enable = true;
+
+  virtualisation.docker = {
+    enable = true;
+  };
+
+  users.users.marvin.extraGroups = [ "docker" ];
 
   fileSystems."/mnt/nfs" = {
     device = "nas.shramp:/mnt/pool0/library";

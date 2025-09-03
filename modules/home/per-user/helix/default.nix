@@ -6,12 +6,13 @@
 # TODO: Configure yazi + zellij to open files in an active hx session.  For the
 # time being I'm using yazi to do quick file edits and `space + f` to open files.
 
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./lsp-ai.nix
     ./lsp-spellcheck.nix
 
+    ./language-git.nix
     ./language-hcl.nix
     ./language-jinja.nix
     ./language-js.nix
