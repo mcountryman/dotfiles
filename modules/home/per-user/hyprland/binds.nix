@@ -5,7 +5,7 @@
 
     bind = [
       "$mod, Space, exec, ${lib.getExe pkgs.anyrun}"
-      "$mod, Return, exec, ${lib.getExe pkgs.alacritty}"
+      "$mod, Return, exec, ${lib.getExe pkgs.wezterm}"
       "$mod, Backspace, exec, ${lib.getExe pkgs.hyprlock}"
 
       "$mod, C, exec, copyq copy"

@@ -2,6 +2,7 @@
 {
   imports = [
     ./yubi.nix
+    ./graphics.nix
     ./goose-cli.nix
     ./nixos/configuration.nix
   ];
@@ -37,6 +38,8 @@
     }
   ];
 
+  boot.binfmt.emulatedSystems = [ "x86_64-linux" ];
+
   security.pam.services.hyprlock = { };
   services.displayManager.ly.enable = true;
 
@@ -47,9 +50,4 @@
   };
 
   users.users.marvin.extraGroups = [ "docker" ];
-
-  fileSystems."/mnt/nfs" = {
-    device = "nas.shramp:/mnt/pool0/library";
-    fsType = "nfs";
-  };
 }

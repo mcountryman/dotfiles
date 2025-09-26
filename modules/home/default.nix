@@ -9,14 +9,16 @@
 
     dotfiles = config.dotfiles;
     imports = [
+      ./per-user/helix
+      ./per-user/firefox
+      ./per-user/wezterm
+
       ../default.nix
       ./per-user/alacritty.nix
-      ./per-user/firefox
       ./per-user/fish.nix
       ./per-user/git.nix
       ./per-user/gpg.nix
       ./per-user/keychain.nix
-      ./per-user/helix
       ./per-user/yazi.nix
       ./per-user/zellij.nix
 

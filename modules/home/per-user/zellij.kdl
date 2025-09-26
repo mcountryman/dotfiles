@@ -72,14 +72,24 @@ keybinds clear-defaults=true {
 	bind "-" { Resize "Decrease"; }
   }
 
+  entersearch {
+	bind "Esc" { SwitchToMode "Normal"; }
+	bind "Enter" { SwitchToMode "Search"; }
+	bind "k" { Search "up"; } 
+	bind "j" { Search "down"; } 
+  }
+
+  search {
+	bind "Esc" "Enter" { SwitchToMode "Normal"; }
+	bind "k" { Search "up"; } 
+	bind "j" { Search "down"; } 
+  }
 
   renametab {
-	bind "Esc" { SwitchToMode "Normal"; }
-	bind "Enter" { SwitchToMode "Normal"; }
+	bind "Esc" "Enter" { SwitchToMode "Normal"; }
   }
 
   renamepane {
-	bind "Esc" { SwitchToMode "Normal"; }
-	bind "Enter" { SwitchToMode "Normal"; }
+	bind "Esc" "Enter" { SwitchToMode "Normal"; }
   }
 }
