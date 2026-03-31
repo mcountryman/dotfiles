@@ -32,11 +32,13 @@
       set -g @minimal-tmux-fg "#fbf1c7"
       set -g @minimal-tmux-bg "#98971a"
       set -g @minimal-tmux-status-right-extra " "
-      set -g status-style bg=default,fg=default
+      set -g status-style bg=#1d2021,fg=default
 
       # style
-      set -g pane-border-style "fg=#458588"
-      set -g pane-active-border-style "fg=#83a598"
+      set-window-option -g pane-border-status off
+      set -g pane-border-style "fg=colour235,bg=colour235"
+      set -g pane-active-border-style "fg=colour235,bg=colour235"
+      set -g window-active-style "bg=#282828"
         
       # keys
       bind \\ split-window -h -c "#{pane_current_path}"

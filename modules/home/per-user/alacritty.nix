@@ -17,7 +17,7 @@
       window = {
         blur = true;
         decorations = "buttonless";
-        dynamic_padding = false;
+        dynamic_padding = true;
       };
     };
   };
