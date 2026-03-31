@@ -13,8 +13,8 @@
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     # Apple silicon
-    nixos-apple-silicon.url = "github:nix-community/nixos-apple-silicon";
-    nixos-apple-silicon.inputs.nixpkgs.follows = "nixpkgs";
+    # nixos-apple-silicon.url = "github:nix-community/nixos-apple-silicon";
+    # nixos-apple-silicon.inputs.nixpkgs.follows = "nixpkgs";
 
     # Homebrew
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
@@ -30,8 +30,8 @@
 
     # Cross OS/arch builder.  Look at the readme for details when setting up
     # from scratch.  Requires some bootstrap jazz.
-    nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
-    nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
+    # nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
+    # nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
 
     # Make it pretty
     stylix.url = "github:nix-community/stylix";
@@ -42,10 +42,11 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     helix.url = "github:helix-editor/helix";
+    # helix.url = "github:helix-editor/helix/079f544260f4f5eaff08104bf07abd57bfb7b611";
     helix.inputs.nixpkgs.follows = "nixpkgs";
 
-    hyprland.url = "github:hyprwm/hyprland";
-    hyprland.inputs.nixpkgs.follows = "nixpkgs";
+    # hyprland.url = "github:hyprwm/hyprland";
+    # hyprland.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs: {
@@ -57,38 +58,38 @@
       ];
     };
 
-    nixosConfigurations."foldy-nix" = inputs.nixpkgs.lib.nixosSystem {
-      system = "aarch64-linux";
-      modules = [
-        inputs.self.nixosModules.default
-        inputs.nixos-apple-silicon.nixosModules.default
-        ./hosts/foldy-nix
-        {
-          nixpkgs.overlays = [ inputs.hyprland.overlays.default ];
-        }
-      ];
-    };
+    # nixosConfigurations."foldy-nix" = inputs.nixpkgs.lib.nixosSystem {
+    #   system = "aarch64-linux";
+    #   modules = [
+    #     inputs.self.nixosModules.default
+    #     inputs.nixos-apple-silicon.nixosModules.default
+    #     ./hosts/foldy-nix
+    #     {
+    #       nixpkgs.overlays = [ inputs.hyprland.overlays.default ];
+    #     }
+    #   ];
+    # };
 
     overlays = import ./overlays ++ [
       inputs.helix.overlays.default
     ];
 
-    nixosModules.default = {
-      imports = [
-        inputs.sops-nix.nixosModules.sops
-        inputs.stylix.nixosModules.stylix
-        inputs.home-manager.nixosModules.home-manager
+    # nixosModules.default = {
+    #   imports = [
+    #     inputs.sops-nix.nixosModules.sops
+    #     inputs.stylix.nixosModules.stylix
+    #     inputs.home-manager.nixosModules.home-manager
 
-        ./modules
-        ./modules/home
-        ./modules/common
-        ./modules/nixos
+    #     ./modules
+    #     ./modules/home
+    #     ./modules/common
+    #     ./modules/nixos
 
-        {
-          nixpkgs.overlays = inputs.self.overlays;
-        }
-      ];
-    };
+    #     {
+    #       nixpkgs.overlays = inputs.self.overlays;
+    #     }
+    #   ];
+    # };
 
     darwinModules.default = {
       imports = [
@@ -96,7 +97,7 @@
         inputs.stylix.darwinModules.stylix
         inputs.home-manager.darwinModules.home-manager
         inputs.nix-homebrew.darwinModules.nix-homebrew
-        inputs.nix-rosetta-builder.darwinModules.default
+        # inputs.nix-rosetta-builder.darwinModules.default
 
         ./modules
         ./modules/home

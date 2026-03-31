@@ -17,6 +17,7 @@
     ./language-jinja.nix
     ./language-js.nix
     ./language-nix.nix
+    ./language-python.nix
     ./language-rust.nix
     ./language-toml.nix
     ./language-yaml.nix
@@ -32,6 +33,7 @@
 
     settings = {
       theme = "fancy";
+      # theme = "ayu_dark";
       editor = {
         mouse = false;
         shell = [
@@ -101,7 +103,7 @@
     };
 
     themes.fancy = ''
-      inherits = "gruvbox_material_dark_hard"
+      inherits = "gruvbox_dark_hard"
 
       "ui.background" = {}
     '';

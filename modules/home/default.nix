@@ -11,19 +11,20 @@
     imports = [
       ./per-user/helix
       ./per-user/firefox
-      ./per-user/wezterm
+      # ./per-user/wezterm
 
       ../default.nix
       ./per-user/alacritty.nix
       ./per-user/fish.nix
       ./per-user/git.nix
       ./per-user/gpg.nix
-      ./per-user/keychain.nix
+      # ./per-user/keychain.nix
       ./per-user/yazi.nix
+      ./per-user/tmux.nix
       ./per-user/zellij.nix
 
       # FIXME: Only enable on linux
-      ./per-user/hyprland
+      # ./per-user/hyprland
     ];
 
     # until home-manager can handle nixpkgs 25.11

@@ -25,7 +25,7 @@
     };
 
     sizes = {
-      terminal = 13;
+      terminal = 16;
     };
   };
 

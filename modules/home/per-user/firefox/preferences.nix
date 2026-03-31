@@ -33,6 +33,7 @@
         nav-bar = [
           "back-button"
           "forward-button"
+          "refresh-button"
           "urlbar-container"
           "downloads-button"
           "unified-extensions-button"

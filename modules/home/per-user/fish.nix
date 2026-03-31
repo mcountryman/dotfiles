@@ -91,4 +91,8 @@
     enableFishIntegration = true;
   };
 
+  home.packages = with pkgs; [
+    chafa
+    ueberzugpp
+  ];
 }

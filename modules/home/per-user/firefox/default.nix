@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   imports = [
     ./policies.nix
@@ -7,8 +7,8 @@
   ];
 
   programs.firefox = {
-    enable = true;
-    package = pkgs.librewolf-wayland;
+    enable = pkgs.stdenv.isLinux;
+    package = lib.mkIf pkgs.stdenv.isLinux pkgs.librewolf-librewolf-wayland;
 
     # Profile
     profiles.default = {

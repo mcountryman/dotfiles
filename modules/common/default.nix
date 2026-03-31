@@ -11,6 +11,7 @@
   environment.variables.VISUAL = "hx";
 
   environment.systemPackages = with pkgs; [
+    git
     btop
   ];
 }

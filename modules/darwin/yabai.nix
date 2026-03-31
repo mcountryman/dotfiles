@@ -1,6 +1,6 @@
 # yabai window manager setup
 #
-# I really need to dig into rules a bit more.  The ignore rules I have kinda 
+# I really need to dig into rules a bit more.  The ignore rules I have kinda
 # work although somethimes things just break.  Steam for example is completly
 # unmanagable although I suspect this is a Steam issue.
 
@@ -74,17 +74,18 @@ in
       yabai -m rule --add label="System Settings" app="^System Settings$" manage=off
       yabai -m rule --add label="Activity Monitor" app="^System Settings$" manage=off
       yabai -m rule --add app="^Steam$" manage=off
+      yabai -m rule --add app="^RIFT Intel Fusion Tool$" manage=off
 
       # Spaces
-      yabai -m space 1 -label 1
-      yabai -m space 2 --label 2
-      yabai -m space 3 --label 3
-      yabai -m space 4 --label 4
-      yabai -m space 5 --label 5
-      yabai -m space 6 --label 6
-      yabai -m space 7 --label 7
-      yabai -m space 8 --label 8
-      yabai -m space 9 --label 9
+      yabai -m space  1 --label  1
+      yabai -m space  2 --label  2
+      yabai -m space  3 --label  3
+      yabai -m space  4 --label  4
+      yabai -m space  5 --label  5
+      yabai -m space  6 --label  6
+      yabai -m space  7 --label  7
+      yabai -m space  8 --label  8
+      yabai -m space  9 --label  9
       yabai -m space 10 --label 10
 
       # Scripting additions
@@ -101,7 +102,7 @@ in
   services.skhd = {
     enable = true;
     skhdConfig = ''
-      cmd - return : ${pkgs.alacritty}/bin/alacritty
+      cmd - return : ${pkgs.alacritty-graphics}/bin/alacritty
 
       cmd - h : yabai -m window --focus west
       cmd - j : yabai -m window --focus south

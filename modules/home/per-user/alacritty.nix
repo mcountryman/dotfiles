@@ -6,6 +6,7 @@
 
   programs.alacritty = {
     enable = true;
+    package = pkgs.alacritty-graphics;
     settings = {
       env = {
         TERM = "xterm-256color";

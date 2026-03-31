@@ -17,4 +17,6 @@ in
     # This should be the default but, alas
     settings.experimental-features = "nix-command flakes";
   };
+
+  nixpkgs.config.allowUnfree = true;
 }
