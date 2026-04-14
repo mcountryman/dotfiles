@@ -5,7 +5,6 @@
   programs.tmux = {
     enable = true;
     mouse = true;
-    package = pkgs.tmux.override { withSixel = true; };
     plugins = with pkgs; [
       tmuxPlugins.sensible
       tmuxPlugins.gruvbox
@@ -16,19 +15,13 @@
       # term
       set -g default-shell "${pkgs.fish}/bin/fish"
       set -g default-command "${pkgs.fish}/bin/fish -l"
-      set -g default-terminal "tmux-256color"
-      set -ga terminal-overrides '*:Ss=\E[%p1%d q:Se=\E[ q'
-      set-environment -g COLORTERM "truecolor"
-      set -g allow-passthrough on
-      set -ga update-environment TERM
-      set -ga update-environment TERM_PROGRAM
-      set -ag terminal-overrides ",xterm-256color:RGB"
+
+      # input
+      set -g set-clipboard external
 
       # theme
       set -g @tmux-gruvbox 'dark256'
       set -g @tmux-gruvbox-statusbar-alpha 'true'
-      # set -g @tmux-gruvbox-left-status-a '#S' # tmux's session name
-      # set -g @tmux-gruvbox-right-status-x '%Y-%m-%d'
       set -g @minimal-tmux-fg "#fbf1c7"
       set -g @minimal-tmux-bg "#98971a"
       set -g @minimal-tmux-status-right-extra " "
@@ -52,7 +45,7 @@
       bind -r K resize-pane -U 5
       bind -r L resize-pane -R 5
 
-      bind f display-popup -h 50% -w 60% -E "sh -c 'SESSION_NAME=Yazi; if ! tmux has-session -t \$SESSION_NAME 2>/dev/null; then tmux new-session -d -s \$SESSION_NAME -c \"#{pane_current_path}\" yazi; tmux set-option -t \$SESSION_NAME status off; fi; tmux attach-session -t \$SESSION_NAME'"
+      bind f display-popup -d "#{pane_current_path}" -h 50% -w 60% -E "sh -c 'yazi'"
 
       bind R source ~/.config/tmux/tmux.conf
       unbind '"'

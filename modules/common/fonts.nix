@@ -6,6 +6,7 @@
     pkgs.nerd-fonts.iosevka-term-slab
     pkgs.nerd-fonts.proggy-clean-tt
 
+    pkgs.nerd-fonts.space-mono
     # -
   ];
 }

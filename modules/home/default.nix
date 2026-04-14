@@ -1,4 +1,4 @@
-{ config, ... }:
+{ pkgs, config, ... }:
 {
   home-manager.useGlobalPkgs = true;
   # home-manager.useUserPackages = true;
@@ -16,6 +16,7 @@
       ../default.nix
       ./per-user/alacritty.nix
       ./per-user/fish.nix
+      ./per-user/ghostty.nix
       ./per-user/git.nix
       ./per-user/gpg.nix
       # ./per-user/keychain.nix

@@ -17,11 +17,15 @@
       }
     ];
 
+    home.packages = with pkgs; [
+      clippy
+    ];
+
     language-server.rust-analyzer = {
       command = "rust-analyzer";
 
       config = {
-        check.command = "${pkgs.clippy}/bin/clippy";
+        check.command = "clippy";
 
         inlayHints.bindingModeHints.enable = false;
         inlayHints.closingBraceHints.minLines = 10;

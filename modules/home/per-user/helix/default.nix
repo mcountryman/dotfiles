@@ -20,6 +20,7 @@
     ./language-python.nix
     ./language-rust.nix
     ./language-toml.nix
+    ./language-typst.nix
     ./language-yaml.nix
   ];
 
