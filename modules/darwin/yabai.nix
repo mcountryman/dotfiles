@@ -102,7 +102,7 @@ in
   services.skhd = {
     enable = true;
     skhdConfig = ''
-      cmd - return : ${pkgs.alacritty-graphics}/bin/alacritty
+      cmd - return : ${pkgs.ghostty-bin}/bin/ghostty
 
       cmd - h : yabai -m window --focus west
       cmd - j : yabai -m window --focus south
