@@ -82,7 +82,7 @@
 
     #     ./modules
     #     ./modules/home
-    #     ./modules/common
+    #     ./modules/shared
     #     ./modules/nixos
 
     #     {
@@ -101,7 +101,7 @@
 
         ./modules
         ./modules/home
-        ./modules/common
+        ./modules/shared
         ./modules/darwin
         {
           nixpkgs.overlays = inputs.self.overlays;
