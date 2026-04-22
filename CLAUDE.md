@@ -21,6 +21,29 @@ sudo nixos-rebuild switch --flake .
 
 There are no other build scripts, Makefiles, or test commands — the entire system is managed through `darwin-rebuild`/`nixos-rebuild`.
 
+## Checks and Formatting
+
+**Always run these after modifying any `.nix` file:**
+
+```bash
+# Run all checks (formatting, linting, dead code, config eval)
+nix flake check
+
+# Auto-format all .nix files
+nix fmt
+```
+
+Checks are defined in `checks.nix` and wired into `flake.nix` as `outputs.checks`. They run on `aarch64-darwin`, `aarch64-linux`, and `x86_64-linux`.
+
+| Check | Tool | What it catches |
+|---|---|---|
+| `formatting` | nixfmt-rfc-style | Style inconsistencies — fix with `nix fmt` |
+| `statix` | statix | Anti-patterns and style issues |
+| `deadnix` | deadnix | Unused bindings and lambda arguments |
+| `darwinConfigurations` | nix eval | Module type errors, missing options, bad references in all `aarch64-darwin` hosts — evaluates without building |
+
+The `darwinConfigurations` check runs on every platform: on a matching host it evaluates the config's derivation graph; on others it skips gracefully.
+
 ## Architecture
 
 ### Module Layers
