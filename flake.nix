@@ -131,13 +131,13 @@
         ];
       };
 
-      formatter = eachPkgs (pkgs: pkgs.nixfmt-rfc-style);
+      formatter = eachPkgs (pkgs: pkgs.nixfmt-tree);
 
       checks = eachPkgs (pkgs: {
         # Verify all .nix files are formatted with nixfmt-rfc-style.
         # Run `nix fmt` to fix failures.
         formatting = pkgs.runCommand "check-formatting" { } ''
-          ${pkgs.lib.getExe pkgs.nixfmt-rfc-style} --check $(find ${./.} -name "*.nix")
+          ${pkgs.lib.getExe pkgs.nixfmt} --check $(find ${./.} -name "*.nix")
           touch $out
         '';
 
