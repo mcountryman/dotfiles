@@ -2,7 +2,6 @@
 let
   # vscode-css = "${pkgs.vscode-langservers-extracted}/bin/vscode-css-language-server";
   # vscode-html = "${pkgs.vscode-langservers-extracted}/bin/vscode-html-language-server";
-  vscode-json = "${pkgs.vscode-langservers-extracted}/bin/vscode-json-language-server";
   vscode-eslint = "${pkgs.vscode-langservers-extracted}/bin/vscode-eslint-language-server";
   # vscode-markdown = "${pkgs.vscode-langservers-extracted}/bin/vscode-markdown-language-server";
 

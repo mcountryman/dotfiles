@@ -7,11 +7,15 @@
     ./nix-daemon.nix
   ];
 
-  environment.variables.EDITOR = "hx";
-  environment.variables.VISUAL = "hx";
+  environment = {
+    variables = {
+      EDITOR = "hx";
+      VISUAL = "hx";
+    };
 
-  environment.systemPackages = with pkgs; [
-    git
-    btop
-  ];
+    systemPackages = with pkgs; [
+      git
+      btop
+    ];
+  };
 }

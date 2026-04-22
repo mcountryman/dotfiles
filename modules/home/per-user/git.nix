@@ -3,9 +3,12 @@
   programs.git = {
     enable = true;
     settings = {
-      user.name = user.fullName;
-      user.email = user.email;
-      user.signingkey = "me@maar.vin";
+      user = {
+        inherit (user) email;
+
+        name = user.fullName;
+        signingkey = "me@maar.vin";
+      };
 
       commit.gpgsign = true;
 

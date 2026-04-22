@@ -1,4 +1,4 @@
-final: prev: {
+_: prev: {
   tmux = prev.tmux.overrideAttrs (_: {
     src = prev.fetchFromGitHub {
       owner = "tmux";

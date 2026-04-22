@@ -1,4 +1,4 @@
-final: prev: {
+_: prev: {
   qemu = prev.qemu.overrideAttrs (_: rec {
     version = "10.1.0";
     src = prev.fetchurl {

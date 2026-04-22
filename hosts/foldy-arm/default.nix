@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ pkgs, ... }:
 {
   sops.secrets."buildMachines/nix.shramp".sopsFile = ./secrets.yaml;
 
@@ -33,22 +33,6 @@
       # "tailscale"
     ];
   };
-
-  nix.settings.builders-use-substitutes = true;
-  nix.distributedBuilds = true;
-  nix.buildMachines = [
-    {
-      system = "x86_64-linux";
-      sshKey = config.sops.secrets."buildMachines/nix.shramp".path;
-      sshUser = "provision";
-      hostName = "nix.shramp";
-      supportedFeatures = [
-        "nixos-test"
-        "big-parallel"
-        "kvm"
-      ];
-    }
-  ];
 
   programs.gnupg.agent = {
     enable = true;

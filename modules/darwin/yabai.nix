@@ -4,28 +4,10 @@
 # work although somethimes things just break.  Steam for example is completly
 # unmanagable although I suspect this is a Steam issue.
 
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 let
-  jq = lib.getExe pkgs.jq;
-  yabai = lib.getExe pkgs.yabai;
-
   # Keep the magic pixies in my lithium brick for a bit longer
-  off = "0xff000000";
-
-  # Stolen from the helix ayu_theme
-  background = "0xff0f1419";
-  foreground = "0xffbfbdb6";
-
-  black = "0xff131721";
-  blue = "0xff59c2ff";
-  dark_gray = "0xff2d3640";
-  cyan = "0xff73b8ff";
-  gray = "0xff5c6773";
-  green = "0xffaad94c";
-  magenta = "0xffd2a6ff";
-  orange = "0xffff8f40";
   red = "0xfff07178";
-  yellow = "0xffe6b450";
 
   scripts = {
     mode-default = pkgs.writeScriptBin "run" ''
@@ -154,58 +136,6 @@ in
 
       resize < escape ; default
     '';
-  };
-
-  services.spacebar = {
-    enable = false;
-    package = pkgs.spacebar;
-    config = {
-      display = "main";
-
-      height = 38;
-      position = "top";
-      spacing_left = 20;
-      spacing_right = 30;
-
-      # icon_font = ''"ProggyClean CE Nerd Font:Regular:18.0"'';
-      # text_font = ''"ProggyClean CE Nerd Font:Regular:18.0"'';
-      icon_font = ''"IosevkaTerm Nerd Font:Regular:14.0"'';
-      text_font = ''"IosevkaTerm Nerd Font:Regular:14.0"'';
-
-      background_color = "${off}";
-      foreground_color = "${foreground}";
-
-      title = "off";
-
-      spaces = "on";
-      space_icon_strip = "I II III IV V VI VII VIII IX 󰩹";
-      space_icon_color = "${green}";
-      space_icon_color_secondary = "${orange}";
-      space_icon_color_tertiary = "${orange}";
-
-      clock = "on";
-      clock_format = ''" %a %F %I:%M %p"'';
-      clock_icon = "󰅐";
-      clock_icon_color = "${magenta}";
-
-      power = "on";
-      power_icon_strip = " ";
-      power_icon_color = "${yellow}";
-      battery_icon_color = "${red}";
-
-      dnd = "on";
-      dnd_icon = "";
-      dnd_icon_color = "${foreground}";
-    };
-  };
-
-  services.jankyborders = {
-    enable = true;
-    width = 1.0;
-    hidpi = true;
-    order = "above";
-    active_color = "${green}";
-    inactive_color = "0x00000000";
   };
 
   # system.activationScripts.postActivation.text = ''

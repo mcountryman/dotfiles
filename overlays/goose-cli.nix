@@ -1,4 +1,4 @@
-final: prev: {
+_: prev: {
   goose-cli = prev.goose-cli.overrideAttrs (_: rec {
     version = "1.5.0";
     src = prev.fetchFromGitHub {

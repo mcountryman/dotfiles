@@ -17,16 +17,17 @@ let
 in
 {
   imports = [
-    ./yabai.nix
     ./homebrew.nix
+    ./jankyborders.nix
     ./linux-builder.nix
+    ./yabai.nix
   ];
 
   # Use TouchID for `sudo` authentication
   security.pam.services.sudo_local.touchIdAuth = true;
 
   system = {
-    primaryUser = primaryUser;
+    inherit primaryUser;
 
     defaults = {
       # A futile attempt to nix `.DS_Store`

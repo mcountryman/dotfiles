@@ -1,8 +1,7 @@
-{ lib, config, ... }:
+{ lib, ... }:
 let
   inherit (lib) types mkOption;
 
-  cfg = config.dotfiles;
   user =
     { name, ... }:
     {

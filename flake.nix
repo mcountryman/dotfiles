@@ -45,9 +45,6 @@
     helix.url = "github:helix-editor/helix";
     # helix.url = "github:helix-editor/helix/079f544260f4f5eaff08104bf07abd57bfb7b611";
     helix.inputs.nixpkgs.follows = "nixpkgs";
-
-    # hyprland.url = "github:hyprwm/hyprland";
-    # hyprland.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -70,22 +67,6 @@
           ./hosts/foldy-arm
         ];
       };
-
-      # nixosConfigurations."foldy-nix" = inputs.nixpkgs.lib.nixosSystem {
-      #   system = "aarch64-linux";
-      #   modules = [
-      #     inputs.self.nixosModules.default
-      #     inputs.nixos-apple-silicon.nixosModules.default
-      #     ./hosts/foldy-nix
-      #     {
-      #       nixpkgs.overlays = [ inputs.hyprland.overlays.default ];
-      #     }
-      #   ];
-      # };
-
-      # overlays.default = import ./overlays ++ [
-      #   inputs.helix.overlays.default
-      # ];
 
       # nixosModules.default = {
       #   imports = [
@@ -118,7 +99,9 @@
           ./modules/shared
           ./modules/darwin
           {
-            # nixpkgs.overlays = inputs.self.overlays.default;
+            nixpkgs.overlays = [
+              inputs.helix.overlays.default
+            ];
 
             # Until I figure out a good way to pass down `inputs` we'll just make
             # sure all inputs are accessed from `flake.nix`.
@@ -159,8 +142,8 @@
             eachMatchingConfig =
               fn:
               pkgs.lib.pipe inputs.self.darwinConfigurations [
-                (pkgs.lib.filterAttrs (n: v: pkgs.stdenv.hostPlatform.system == v.pkgs.stdenv.hostPlatform.system))
-                (pkgs.lib.mapAttrs (_: v: fn v))
+                (pkgs.lib.filterAttrs (_: v: pkgs.stdenv.hostPlatform.system == v.pkgs.stdenv.hostPlatform.system))
+                (pkgs.lib.mapAttrs (_: fn))
                 pkgs.lib.attrValues
               ];
           in
