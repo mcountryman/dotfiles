@@ -30,8 +30,9 @@
 
     # Cross OS/arch builder.  Look at the readme for details when setting up
     # from scratch.  Requires some bootstrap jazz.
-    # nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
-    # nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
+    nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
+    nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
+    virby.url = "github:quinneden/virby-nix-darwin";
 
     # Make it pretty
     stylix.url = "github:nix-community/stylix";
@@ -97,7 +98,8 @@
         inputs.stylix.darwinModules.stylix
         inputs.home-manager.darwinModules.home-manager
         inputs.nix-homebrew.darwinModules.nix-homebrew
-        # inputs.nix-rosetta-builder.darwinModules.default
+        inputs.nix-rosetta-builder.darwinModules.default
+        # inputs.virby.darwinModules.default
 
         ./modules
         ./modules/home
