@@ -50,73 +50,125 @@
     # hyprland.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs: {
-    darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
-      system = "aarch64-darwin";
-      modules = [
-        inputs.self.darwinModules.default
-        ./hosts/foldy-arm
+  outputs =
+    { nixpkgs, ... }@inputs:
+    let
+      eachPkgs = fn: eachSystem (system: fn (import nixpkgs { inherit system; }));
+      eachSystem = nixpkgs.lib.genAttrs systems;
+
+      systems = [
+        "aarch64-darwin"
+        "aarch64-linux"
+        "x86_64-linux"
       ];
+    in
+    {
+      darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
+        system = "aarch64-darwin";
+        modules = [
+          inputs.self.darwinModules.default
+          ./hosts/foldy-arm
+        ];
+      };
+
+      # nixosConfigurations."foldy-nix" = inputs.nixpkgs.lib.nixosSystem {
+      #   system = "aarch64-linux";
+      #   modules = [
+      #     inputs.self.nixosModules.default
+      #     inputs.nixos-apple-silicon.nixosModules.default
+      #     ./hosts/foldy-nix
+      #     {
+      #       nixpkgs.overlays = [ inputs.hyprland.overlays.default ];
+      #     }
+      #   ];
+      # };
+
+      # overlays.default = import ./overlays ++ [
+      #   inputs.helix.overlays.default
+      # ];
+
+      # nixosModules.default = {
+      #   imports = [
+      #     inputs.sops-nix.nixosModules.sops
+      #     inputs.stylix.nixosModules.stylix
+      #     inputs.home-manager.nixosModules.home-manager
+
+      #     ./modules
+      #     ./modules/home
+      #     ./modules/shared
+      #     ./modules/nixos
+
+      #     {
+      #       nixpkgs.overlays = inputs.self.overlays;
+      #     }
+      #   ];
+      # };
+
+      darwinModules.default = {
+        imports = [
+          inputs.sops-nix.darwinModules.sops
+          inputs.stylix.darwinModules.stylix
+          inputs.home-manager.darwinModules.home-manager
+          inputs.nix-homebrew.darwinModules.nix-homebrew
+          inputs.nix-rosetta-builder.darwinModules.default
+          # inputs.virby.darwinModules.default
+
+          ./modules
+          ./modules/home
+          ./modules/shared
+          ./modules/darwin
+          {
+            # nixpkgs.overlays = inputs.self.overlays.default;
+
+            # Until I figure out a good way to pass down `inputs` we'll just make
+            # sure all inputs are accessed from `flake.nix`.
+            nix-homebrew.taps = {
+              "homebrew/homebrew-core" = inputs.homebrew-core;
+              "homebrew/homebrew-cask" = inputs.homebrew-cask;
+              "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
+            };
+          }
+        ];
+      };
+
+      formatter = eachPkgs (pkgs: pkgs.nixfmt-rfc-style);
+
+      checks = eachPkgs (pkgs: {
+        # Verify all .nix files are formatted with nixfmt-rfc-style.
+        # Run `nix fmt` to fix failures.
+        formatting = pkgs.runCommand "check-formatting" { } ''
+          ${pkgs.lib.getExe pkgs.nixfmt-rfc-style} --check $(find ${./.} -name "*.nix")
+          touch $out
+        '';
+
+        # Static analysis: common Nix anti-patterns and style issues.
+        statix = pkgs.runCommand "check-statix" { } ''
+          ${pkgs.lib.getExe pkgs.statix} check ${./.}
+          touch $out
+        '';
+
+        # Dead code: unused bindings, redundant `with` expressions, etc.
+        deadnix = pkgs.runCommand "check-deadnix" { } ''
+          ${pkgs.lib.getExe pkgs.deadnix} --fail ${./.}
+          touch $out
+        '';
+
+        # One eval-only check per darwinConfiguration in the flake.
+        darwinConfigurations = pkgs.runCommand "check-darwin-configurations" { } (
+          let
+            eachMatchingConfig =
+              fn:
+              pkgs.lib.pipe inputs.self.darwinConfigurations [
+                (pkgs.lib.filterAttrs (n: v: pkgs.stdenv.hostPlatform.system == v.pkgs.stdenv.hostPlatform.system))
+                (pkgs.lib.mapAttrs (_: v: fn v))
+                pkgs.lib.attrValues
+              ];
+          in
+          pkgs.lib.concatStringsSep "\n" (
+            [ "touch $out" ]
+            ++ eachMatchingConfig (cfg: "echo ${toString cfg.config.system.stateVersion} >> $out")
+          )
+        );
+      });
     };
-
-    # nixosConfigurations."foldy-nix" = inputs.nixpkgs.lib.nixosSystem {
-    #   system = "aarch64-linux";
-    #   modules = [
-    #     inputs.self.nixosModules.default
-    #     inputs.nixos-apple-silicon.nixosModules.default
-    #     ./hosts/foldy-nix
-    #     {
-    #       nixpkgs.overlays = [ inputs.hyprland.overlays.default ];
-    #     }
-    #   ];
-    # };
-
-    overlays = import ./overlays ++ [
-      inputs.helix.overlays.default
-    ];
-
-    # nixosModules.default = {
-    #   imports = [
-    #     inputs.sops-nix.nixosModules.sops
-    #     inputs.stylix.nixosModules.stylix
-    #     inputs.home-manager.nixosModules.home-manager
-
-    #     ./modules
-    #     ./modules/home
-    #     ./modules/shared
-    #     ./modules/nixos
-
-    #     {
-    #       nixpkgs.overlays = inputs.self.overlays;
-    #     }
-    #   ];
-    # };
-
-    darwinModules.default = {
-      imports = [
-        inputs.sops-nix.darwinModules.sops
-        inputs.stylix.darwinModules.stylix
-        inputs.home-manager.darwinModules.home-manager
-        inputs.nix-homebrew.darwinModules.nix-homebrew
-        inputs.nix-rosetta-builder.darwinModules.default
-        # inputs.virby.darwinModules.default
-
-        ./modules
-        ./modules/home
-        ./modules/shared
-        ./modules/darwin
-        {
-          nixpkgs.overlays = inputs.self.overlays;
-
-          # Until I figure out a good way to pass down `inputs` we'll just make
-          # sure all inputs are accessed from `flake.nix`.
-          nix-homebrew.taps = {
-            "homebrew/homebrew-core" = inputs.homebrew-core;
-            "homebrew/homebrew-cask" = inputs.homebrew-cask;
-            "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
-          };
-        }
-      ];
-    };
-  };
 }
