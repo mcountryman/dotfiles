@@ -67,8 +67,24 @@
         ];
       };
 
+      homeConfigurations."marvin@foldy-arm" = inputs.home-manager.lib.homeManagerConfiguration {
+        pkgs = import nixpkgs { system = "aarch64-darwin"; };
+        modules = [
+          inputs.self.homeModules.darwin
+          inputs.self.homeModules.users.marvin
+          ./hosts/foldy-arm/users/marvin
+        ];
+      };
+
       darwinModules.default = inputs.self.darwinModules.dotfiles;
       darwinModules.dotfiles = import ./modules/darwin inputs;
+
+      homeModules = {
+        nixos = import ./modules/home/nixos inputs;
+        darwin = import ./modules/home/darwin inputs;
+
+        users.marvin = import ./modules/home/users/marvin inputs;
+      };
 
       formatter = eachPkgs (pkgs: pkgs.nixfmt-tree);
 
@@ -106,6 +122,23 @@
           pkgs.lib.concatStringsSep "\n" (
             [ "touch $out" ]
             ++ eachMatchingConfig (cfg: "echo ${toString cfg.config.system.stateVersion} >> $out")
+          )
+        );
+
+        # One eval-only check per homeConfiguration in the flake.
+        homeConfigurations = pkgs.runCommand "check-home-configurations" { } (
+          let
+            eachMatchingConfig =
+              fn:
+              pkgs.lib.pipe inputs.self.homeConfigurations [
+                (pkgs.lib.filterAttrs (_: v: pkgs.stdenv.hostPlatform.system == v.pkgs.stdenv.hostPlatform.system))
+                (pkgs.lib.mapAttrs (_: fn))
+                pkgs.lib.attrValues
+              ];
+          in
+          pkgs.lib.concatStringsSep "\n" (
+            [ "touch $out" ]
+            ++ eachMatchingConfig (cfg: "echo ${toString cfg.config.home.stateVersion} >> $out")
           )
         );
       });

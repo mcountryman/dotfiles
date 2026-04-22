@@ -1,12 +1,10 @@
-{ user, ... }:
 {
   programs.git = {
     enable = true;
     settings = {
       user = {
-        inherit (user) email;
-
-        name = user.fullName;
+        name = "Marvin Countryman";
+        email = "me@maar.vin";
         signingkey = "me@maar.vin";
       };
 

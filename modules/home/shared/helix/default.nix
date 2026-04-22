@@ -2,10 +2,6 @@
 #
 # Ideally done in such a way that LSP/formatter binaries are not on PATH, rather
 # directly referenced from the nix store.
-#
-# TODO: Configure yazi + zellij to open files in an active hx session.  For the
-# time being I'm using yazi to do quick file edits and `space + f` to open files.
-
 { pkgs, ... }:
 {
   imports = [
@@ -34,7 +30,6 @@
 
     settings = {
       theme = "fancy";
-      # theme = "ayu_dark";
       editor = {
         mouse = false;
         shell = [
@@ -48,7 +43,6 @@
         true-color = true;
 
         lsp = {
-          # display-messages = true;
           display-inlay-hints = true;
         };
 
@@ -94,10 +88,7 @@
           up = "no_op";
           right = "no_op";
 
-          space = {
-            # z = ":sh zellij run -fc -x 10% --width 80% -- bash ~/.config/helix/bin/yazi";
-            # "/" = ":sh zellij run -fc -x 10% --width 80% -- bash ~/.config/helix/bin/ff";
-          };
+          space = { };
         };
       };
 

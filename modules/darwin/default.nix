@@ -1,13 +1,22 @@
-inputs: {
+{
+  self,
+  helix,
+  homebrew-cask,
+  homebrew-core,
+  homebrew-bundle,
+  home-manager,
+  nix-homebrew,
+  nix-rosetta-builder,
+  sops-nix,
+  ...
+}:
+{
   imports = [
-    inputs.sops-nix.darwinModules.sops
-    inputs.stylix.darwinModules.stylix
-    inputs.home-manager.darwinModules.home-manager
-    inputs.nix-homebrew.darwinModules.nix-homebrew
-    inputs.nix-rosetta-builder.darwinModules.default
+    (import ./home.nix { inherit self home-manager; })
+    nix-homebrew.darwinModules.nix-homebrew
+    nix-rosetta-builder.darwinModules.default
+    sops-nix.darwinModules.sops
 
-    ../.
-    ../home
     ../shared
 
     ./homebrew.nix
@@ -20,21 +29,15 @@ inputs: {
     ./yabai.nix
     {
       nixpkgs.overlays = [
-        inputs.helix.overlays.default
+        helix.overlays.default
       ];
 
-      # Until I figure out a good way to pass down `inputs` we'll just make
-      # sure all inputs are accessed from `flake.nix`.
       nix-homebrew.taps = {
-        "homebrew/homebrew-core" = inputs.homebrew-core;
-        "homebrew/homebrew-cask" = inputs.homebrew-cask;
-        "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
+        "homebrew/homebrew-cask" = homebrew-cask;
+        "homebrew/homebrew-core" = homebrew-core;
+        "homebrew/homebrew-bundle" = homebrew-bundle;
       };
 
-      # Set Git commit hash for darwin-version.
-      # configurationRevision = self.rev or self.dirtyRev or null;
-      # Used for backwards compatibility, please read the changelog before changing.
-      # $ darwin-rebuild changelog
       system.stateVersion = 5;
     }
   ];

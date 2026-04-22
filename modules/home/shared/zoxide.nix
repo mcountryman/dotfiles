@@ -1,5 +1,5 @@
 {
-  # Fancy `cd` with more better shortcuts
+  # Fancy `cd` with better shortcuts
   programs.zoxide = {
     enable = true;
     enableFishIntegration = true;

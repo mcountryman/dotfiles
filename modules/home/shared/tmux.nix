@@ -8,7 +8,7 @@
     plugins = with pkgs; [
       tmuxPlugins.sensible
       tmuxPlugins.gruvbox
-      tmuxPlugins.minimal-tmux-status # could probably do this by hand..
+      tmuxPlugins.minimal-tmux-status
     ];
 
     extraConfig = ''
@@ -32,7 +32,7 @@
       set -g pane-border-style "fg=colour235,bg=colour235"
       set -g pane-active-border-style "fg=colour235,bg=colour235"
       set -g window-active-style "bg=#282828"
-        
+
       # keys
       bind \\ split-window -h -c "#{pane_current_path}"
       bind -  split-window -v -c "#{pane_current_path}"

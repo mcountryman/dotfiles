@@ -4,15 +4,7 @@
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  # is me
-  dotfiles.yubi = true;
-  dotfiles.users.marvin = {
-    email = "me@maar.vin";
-    fullName = "Marvin Countryman";
-    primary = true;
-  };
-
-  # users.users.marvin.extraGroups = [ "video" ];
+  home-manager.users.marvin.imports = [ ./users/marvin ];
 
   services.openssh = {
     enable = true;
@@ -24,13 +16,10 @@
   ];
 
   homebrew = {
-    # brews = [ "docker-buildx" ];
     casks = [
       "steam"
       "firefox"
       "bitwarden"
-      # "moonlight"
-      # "tailscale"
     ];
   };
 

@@ -1,7 +1,6 @@
-{ config, ... }:
 {
-  users.users = builtins.mapAttrs (_: _: {
+  users.users.marvin = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-  }) config.dotfiles.users;
+    extraGroups = [ "wheel" ];
+  };
 }

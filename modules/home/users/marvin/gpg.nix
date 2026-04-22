@@ -1,9 +1,4 @@
-{
-  lib,
-  pkgs,
-  config,
-  ...
-}:
+{ pkgs, ... }:
 {
   programs.gpg = {
     enable = true;
@@ -21,11 +16,6 @@
   services.gpg-agent = {
     enable = true;
     enableSshSupport = true;
-
     pinentry.package = pkgs.pinentry-tty;
   };
-
-  programs.fish.interactiveShellInit = lib.mkIf config.dotfiles.yubi ''
-    set -x SSH_AUTH_SOCK (gpgconf --list-dirs agent-ssh-socket)
-  '';
 }
