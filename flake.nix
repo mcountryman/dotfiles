@@ -32,7 +32,6 @@
     # from scratch.  Requires some bootstrap jazz.
     nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
     nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
-    virby.url = "github:quinneden/virby-nix-darwin";
 
     # Make it pretty
     stylix.url = "github:nix-community/stylix";
@@ -68,51 +67,8 @@
         ];
       };
 
-      # nixosModules.default = {
-      #   imports = [
-      #     inputs.sops-nix.nixosModules.sops
-      #     inputs.stylix.nixosModules.stylix
-      #     inputs.home-manager.nixosModules.home-manager
-
-      #     ./modules
-      #     ./modules/home
-      #     ./modules/shared
-      #     ./modules/nixos
-
-      #     {
-      #       nixpkgs.overlays = inputs.self.overlays;
-      #     }
-      #   ];
-      # };
-
-      darwinModules.default = {
-        imports = [
-          inputs.sops-nix.darwinModules.sops
-          inputs.stylix.darwinModules.stylix
-          inputs.home-manager.darwinModules.home-manager
-          inputs.nix-homebrew.darwinModules.nix-homebrew
-          inputs.nix-rosetta-builder.darwinModules.default
-          # inputs.virby.darwinModules.default
-
-          ./modules
-          ./modules/home
-          ./modules/shared
-          ./modules/darwin
-          {
-            nixpkgs.overlays = [
-              inputs.helix.overlays.default
-            ];
-
-            # Until I figure out a good way to pass down `inputs` we'll just make
-            # sure all inputs are accessed from `flake.nix`.
-            nix-homebrew.taps = {
-              "homebrew/homebrew-core" = inputs.homebrew-core;
-              "homebrew/homebrew-cask" = inputs.homebrew-cask;
-              "homebrew/homebrew-bundle" = inputs.homebrew-bundle;
-            };
-          }
-        ];
-      };
+      darwinModules.default = inputs.self.darwinModules.dotfiles;
+      darwinModules.dotfiles = import ./modules/darwin inputs;
 
       formatter = eachPkgs (pkgs: pkgs.nixfmt-tree);
 

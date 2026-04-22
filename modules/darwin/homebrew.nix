@@ -1,6 +1,4 @@
 # Drive homebrew via nix
-
-{ config, ... }:
 {
   homebrew = {
     enable = true;
@@ -12,7 +10,5 @@
     enable = true;
     enableRosetta = false;
     mutableTaps = false;
-
-    user = config.system.primaryUser;
   };
 }
