@@ -13,11 +13,6 @@
     # cores = 4;
     # memory = "24GiB";
     # onDemand = true;
-    # permitNonRootSshAccess = true;
+    permitNonRootSshAccess = true;
   };
-
-  # services.virby = {
-  #   enable = true;
-  # };
-
 }

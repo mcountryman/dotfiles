@@ -12,35 +12,28 @@
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Apple silicon
-    # nixos-apple-silicon.url = "github:nix-community/nixos-apple-silicon";
-    # nixos-apple-silicon.inputs.nixpkgs.follows = "nixpkgs";
-
-    # Homebrew
-    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
-
-    homebrew-core.url = "github:homebrew/homebrew-core";
-    homebrew-core.flake = false;
-
-    homebrew-cask.url = "github:homebrew/homebrew-cask";
-    homebrew-cask.flake = false;
-
-    homebrew-bundle.url = "github:homebrew/homebrew-bundle";
-    homebrew-bundle.flake = false;
-
-    # Cross OS/arch builder.  Look at the readme for details when setting up
-    # from scratch.  Requires some bootstrap jazz.
+    # Darwin - Linux builder using Rosetta
     nix-rosetta-builder.url = "github:cpick/nix-rosetta-builder";
     nix-rosetta-builder.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Make it pretty
+    # Homebrew
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    homebrew-core.url = "github:homebrew/homebrew-core";
+    homebrew-core.flake = false;
+    homebrew-cask.url = "github:homebrew/homebrew-cask";
+    homebrew-cask.flake = false;
+    homebrew-bundle.url = "github:homebrew/homebrew-bundle";
+    homebrew-bundle.flake = false;
+
+    # Style/theme synchronization
     stylix.url = "github:nix-community/stylix";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
-    # shhh
+    # Secrets management
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Helix editor
     helix.url = "github:helix-editor/helix";
     # helix.url = "github:helix-editor/helix/079f544260f4f5eaff08104bf07abd57bfb7b611";
     helix.inputs.nixpkgs.follows = "nixpkgs";
