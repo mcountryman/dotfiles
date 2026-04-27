@@ -37,6 +37,10 @@
     helix.url = "github:helix-editor/helix";
     # helix.url = "github:helix-editor/helix/079f544260f4f5eaff08104bf07abd57bfb7b611";
     helix.inputs.nixpkgs.follows = "nixpkgs";
+
+    # LLM agents
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    llm-agents.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -61,7 +65,11 @@
       };
 
       homeConfigurations."marvin@foldy-arm" = inputs.home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs { system = "aarch64-darwin"; };
+        pkgs = import nixpkgs {
+          system = "aarch64-darwin";
+          overlays = [ inputs.self.overlays.dotfiles ];
+        };
+
         modules = [
           inputs.self.homeModules.darwin
           inputs.self.homeModules.users.marvin
@@ -71,6 +79,9 @@
 
       darwinModules.default = inputs.self.darwinModules.dotfiles;
       darwinModules.dotfiles = import ./modules/darwin inputs;
+
+      overlays.default = inputs.self.overlays.dotfiles;
+      overlays.dotfiles = import ./overlays inputs;
 
       homeModules = {
         nixos = import ./modules/home/nixos inputs;

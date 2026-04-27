@@ -1,6 +1,11 @@
-[
-  # (import ./qemu.nix)
-  (import ./tmux.nix)
-  (import ./anyrun.nix)
-  (import ./goose-cli.nix)
+{
+  nixpkgs,
+  helix,
+  llm-agents,
+  ...
+}:
+
+nixpkgs.lib.composeManyExtensions [
+  helix.overlays.default
+  llm-agents.overlays.shared-nixpkgs
 ]

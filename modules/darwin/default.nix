@@ -1,6 +1,5 @@
 {
   self,
-  helix,
   homebrew-cask,
   homebrew-core,
   homebrew-bundle,
@@ -28,9 +27,7 @@
     ./users.nix
     ./yabai.nix
     {
-      nixpkgs.overlays = [
-        helix.overlays.default
-      ];
+      nixpkgs.overlays = [ self.overlays.dotfiles ];
 
       nix-homebrew.taps = {
         "homebrew/homebrew-cask" = homebrew-cask;
