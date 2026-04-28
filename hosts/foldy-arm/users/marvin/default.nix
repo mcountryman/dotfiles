@@ -1,11 +1,11 @@
-{ lib, pkgs, ... }:
+{ lib, ... }:
 {
+  imports = [
+    ./claude.nix
+  ];
+
   home.username = "marvin";
   home.homeDirectory = "/Users/marvin";
-
-  home.packages = with pkgs; [
-    llm-agents.claude-code
-  ];
 
   # YubiKey host: override SSH auth to use gpg-agent socket
   programs.fish.interactiveShellInit = lib.mkAfter ''

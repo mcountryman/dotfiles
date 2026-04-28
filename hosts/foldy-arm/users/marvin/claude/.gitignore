@@ -1,0 +1,43 @@
+# macOS system files
+.DS_Store
+
+# Ephemeral session data
+debug/
+projects/
+file-history/
+shell-snapshots/
+paste-cache/
+downloads/
+usage-data/
+telemetry/
+statsig/
+backups/
+todos/
+tasks/
+
+# Auto-generated state
+history.jsonl
+stats-cache.json
+cache/
+
+# Plugin runtime data (downloaded/cached, not config)
+plugins/cache/
+plugins/marketplaces/
+plugins/known_marketplaces.json
+plugins/installed_plugins.json
+plugins/install-counts-cache.json
+
+# Nested project-level Claude settings (machine-specific)
+.claude/
+
+# Local-only settings (machine-specific permissions etc.)
+settings.local.json
+
+# Runtime/ephemeral directories
+sessions/
+context-mode/
+
+# Secrets
+.env
+*.local
+.credentials.json
