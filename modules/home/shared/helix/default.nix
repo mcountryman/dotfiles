@@ -12,6 +12,7 @@
     ./language-hcl.nix
     ./language-jinja.nix
     ./language-js.nix
+    ./language-markdown.nix
     ./language-nix.nix
     ./language-python.nix
     ./language-rust.nix
