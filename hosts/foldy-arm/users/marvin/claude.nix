@@ -8,7 +8,6 @@ in
 {
   home.packages = with pkgs; [
     llm-agents.claude-code
-    llm-agents.opencode
   ];
 
   home.file.".claude" = {

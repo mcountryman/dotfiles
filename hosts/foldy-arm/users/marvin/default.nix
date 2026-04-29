@@ -2,6 +2,7 @@
 {
   imports = [
     ./claude.nix
+    ./opencode.nix
   ];
 
   home.username = "marvin";
