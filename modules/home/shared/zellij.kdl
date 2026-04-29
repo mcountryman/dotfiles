@@ -23,6 +23,13 @@ keybinds clear-defaults=true {
 	bind "\\" { NewPane "Right"; SwitchToMode "Normal"; }
 	bind "f" { ToggleFloatingPanes; SwitchToMode "Normal"; }
 	bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
+	bind "s" {
+		Run "zellij-session-switcher" {
+			floating true
+			close_on_exit true
+		}
+		SwitchToMode "Normal"
+	}
 
 	bind "c" { NewTab; SwitchToMode "Normal"; }
 	bind "," { SwitchToMode "RenameTab"; }
