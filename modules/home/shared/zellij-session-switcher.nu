@@ -41,4 +41,4 @@ if ($selection | is-empty) {
 }
 
 # Switch to the selected session
-zellij switch-session $selection
+zellij attach $selection
