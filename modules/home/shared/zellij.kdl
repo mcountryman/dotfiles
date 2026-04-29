@@ -24,6 +24,7 @@ keybinds clear-defaults=true {
 	bind "f" { ToggleFloatingPanes; SwitchToMode "Normal"; }
 	bind "z" { ToggleFocusFullscreen; SwitchToMode "Normal"; }
 	bind "s" {
+		HideFloatingPanes
 		Run "zellij-session-switcher" {
 			floating true
 			close_on_exit true

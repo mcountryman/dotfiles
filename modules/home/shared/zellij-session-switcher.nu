@@ -32,7 +32,7 @@ if ($sessions | is-empty) {
 let selection = (
     $sessions
     | str join "\n"
-    | fzf --height 10 --reverse --no-multi --prompt "session> "
+    | fzf --reverse --no-multi --prompt "session> "
 )
 
 # fzf returns empty on Ctrl-C/Escape — exit cleanly
