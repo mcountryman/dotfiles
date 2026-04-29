@@ -1,9 +1,18 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
-  tmuxSessionSwitcher = pkgs.writeShellScriptBin "tmux-session-switcher" (
-    builtins.readFile ./tmux-session-switcher.sh
-  );
+  inherit (lib) getExe;
+
+  pickSession =
+    with pkgs;
+    writeShellScriptBin "tmux-pick-session" ''
+      #!/bin/sh
+      session=$(tmux list-sessions 2>/dev/null | cut -d: -f1 | ${getExe fzf} --reverse --no-multi --prompt="session> ")
+
+      if [ -n "$session" ]; then
+          ${getExe tmux} switch-client -t "$session"
+      fi
+    '';
 in
 {
   stylix.targets.tmux.enable = true;
@@ -13,37 +22,47 @@ in
     mouse = true;
     plugins = with pkgs; [
       tmuxPlugins.sensible
-      tmuxPlugins.gruvbox
-      tmuxPlugins.minimal-tmux-status
+      {
+        plugin = tmuxPlugins.gruvbox;
+        extraConfig = ''
+          set -g @tmux-gruvbox 'dark256'
+          set -g @tmux-gruvbox-statusbar-alpha 'true'
+        '';
+      }
+      {
+        plugin = tmuxPlugins.minimal-tmux-status;
+        extraConfig = ''
+          set -g @minimal-tmux-fg "#fbf1c7"
+          set -g @minimal-tmux-bg "#98971a"
+          set -g @minimal-tmux-status-right-extra " "
+          set -g @minimal-tmux-left false
+          set -g @minimal-tmux-right false
+          set -g @minimal-tmux-use-arrow true
+          set -g @minimal-tmux-indicator-str " TMUX "
+        '';
+      }
     ];
 
     extraConfig = ''
       # term
       set -g default-shell "${pkgs.fish}/bin/fish"
       set -g default-command "${pkgs.fish}/bin/fish -l"
+      set -g allow-passthrough on
+      set -ga update-environment TERM_PROGRAM
 
       # input
       set -g set-clipboard external
 
       # theme
-      set -g @tmux-gruvbox 'dark256'
-      set -g @tmux-gruvbox-statusbar-alpha 'true'
-      set -g @minimal-tmux-fg "#fbf1c7"
-      set -g @minimal-tmux-bg "#98971a"
-      set -g @minimal-tmux-status-right-extra " "
       set -g status-style bg=#1d2021,fg=default
-      set -g @minimal-tmux-left false
-      set -g @minimal-tmux-right false
-      set -g @minimal-tmux-use-arrow true
-      set -g @minimal-tmux-indicator-str " TMUX "
 
       # style
       set-window-option -g pane-border-status off
-      set -g pane-border-style "fg=colour235,bg=colour235"
-      set -g pane-active-border-style "fg=colour235,bg=colour235"
-      set -g window-active-style "bg=#282828"
+      set -g pane-border-style "fg=#504945"
+      set -g pane-active-border-style "fg=#504945"
+      set -g window-active-style "bg=default"
       set -g popup-border-lines rounded
-      set -g popup-style "bg=#282828"
+      set -g popup-style "bg=#1d2021"
 
       # keys — prefix mode (Ctrl+b then key)
       bind \\ split-window -h -c "#{pane_current_path}"
@@ -53,8 +72,8 @@ in
       bind k  select-pane -U
       bind l  select-pane -R
 
-      bind f display-popup -d "#{pane_current_path}" -h 50% -w 60% -E "sh -c 'yazi'"
-      bind Space display-popup -b rounded -w 60% -h 40% -x C -y C -E "${pkgs.fish}/bin/fish"
+      bind f display-popup  -h 50% -w 60% -e TERM_PROGRAM=ghostty -d "#{pane_current_path}" -E "${getExe pkgs.yazi} 2>/dev/null"
+      bind Space display-popup -b rounded -w 60% -h 40% -x C -y C -E "${getExe pkgs.fish}/bin/fish"
 
       bind c new-window
       bind , command-prompt -I '#W' -p 'rename:' 'rename-window %%'
@@ -63,7 +82,7 @@ in
       bind d detach-client
       bind x kill-pane
       bind z resize-pane -Z
-      bind s display-popup -b rounded -h 50% -w 60% -x C -y C -E "tmux-session-switcher"
+      bind s display-popup -b rounded -h 50% -w 60% -x C -y C -E "${getExe pickSession}"
       bind r switch-client -T resize
       bind [ copy-mode
 
@@ -84,6 +103,4 @@ in
       bind -T resize Enter switch-client -T root
     '';
   };
-
-  home.packages = [ tmuxSessionSwitcher ];
 }
