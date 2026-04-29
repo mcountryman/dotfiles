@@ -1,24 +1,36 @@
-{ lib, pkgs, ... }:
-
-let
-  inherit (lib) getExe;
-
-  pickSession =
-    with pkgs;
-    writeShellScriptBin "tmux-pick-session" ''
-      #!/bin/sh
-      session=$(tmux list-sessions 2>/dev/null | cut -d: -f1 | ${getExe fzf} --reverse --no-multi --prompt="session> ")
-
-      if [ -n "$session" ]; then
-          ${getExe tmux} switch-client -t "$session"
-      fi
-    '';
-in
+{ pkgs, ... }:
 {
   stylix.targets.tmux.enable = true;
 
+  home.packages = with pkgs; [
+    (writeShellScriptBin "tmux-pick-session" ''
+      tmux list-sessions 2>/dev/null |
+      cut -d: -f1 |
+      ${gum}/bin/gum choose --height 40 --header "switch:" |
+      xargs -I {} tmux switch-client -t {}
+    '')
+  ];
+
   programs.tmux = {
     enable = true;
+
+    # TODO: upgrade to nixos-25.11
+    #
+    # This is a temporary fix to avoid having to upgrade to 25.11 yet. If it
+    # wasn't for the need of two different nixpkgs for darwin and linux I'd
+    # just do it.
+    package = pkgs.tmux.overrideAttrs (
+      final: _prev: {
+        version = "3.6a";
+        src = pkgs.fetchFromGitHub {
+          owner = "tmux";
+          repo = "tmux";
+          rev = final.version;
+          hash = "sha256-VwOyR9YYhA/uyVRJbspNrKkJWJGYFFktwPnnwnIJ97s=";
+        };
+      }
+    );
+
     mouse = true;
     plugins = with pkgs; [
       tmuxPlugins.sensible
@@ -33,22 +45,19 @@ in
         plugin = tmuxPlugins.minimal-tmux-status;
         extraConfig = ''
           set -g @minimal-tmux-fg "#fbf1c7"
-          set -g @minimal-tmux-bg "#98971a"
+          set -g @minimal-tmux-status-left " #{?client_key_table,#{client_key_table},} "
           set -g @minimal-tmux-status-right-extra " "
-          set -g @minimal-tmux-left false
-          set -g @minimal-tmux-right false
-          set -g @minimal-tmux-use-arrow true
-          set -g @minimal-tmux-indicator-str " TMUX "
         '';
       }
     ];
 
     extraConfig = ''
       # term
+      set -g allow-passthrough on
+      set -g default-terminal "''${TERM}"
+      set -ag terminal-overrides ",''${TERM}:Tc"
       set -g default-shell "${pkgs.fish}/bin/fish"
       set -g default-command "${pkgs.fish}/bin/fish -l"
-      set -g allow-passthrough on
-      set -ga update-environment TERM_PROGRAM
 
       # input
       set -g set-clipboard external
@@ -61,8 +70,8 @@ in
       set -g pane-border-style "fg=#504945"
       set -g pane-active-border-style "fg=#504945"
       set -g window-active-style "bg=default"
-      set -g popup-border-lines rounded
-      set -g popup-style "bg=#1d2021"
+      set -g popup-border-lines single
+      set -g popup-style "bg=default"
 
       # keys — prefix mode (Ctrl+b then key)
       bind \\ split-window -h -c "#{pane_current_path}"
@@ -72,8 +81,9 @@ in
       bind k  select-pane -U
       bind l  select-pane -R
 
-      bind f display-popup  -h 50% -w 60% -e TERM_PROGRAM=ghostty -d "#{pane_current_path}" -E "${getExe pkgs.yazi} 2>/dev/null"
-      bind Space display-popup -b rounded -w 60% -h 40% -x C -y C -E "${getExe pkgs.fish}/bin/fish"
+      bind f     display-popup -w 60% -h 50% -E -d "#{pane_current_path}" "tmux new-session 'tmux set status off && yazi'"
+      bind s     display-popup -w 80  -h 20  -E "tmux-pick-session"
+      bind Space display-popup -w 60% -h 50% -E "fish -l"
 
       bind c new-window
       bind , command-prompt -I '#W' -p 'rename:' 'rename-window %%'
@@ -82,7 +92,6 @@ in
       bind d detach-client
       bind x kill-pane
       bind z resize-pane -Z
-      bind s display-popup -b rounded -h 50% -w 60% -x C -y C -E "${getExe pickSession}"
       bind r switch-client -T resize
       bind [ copy-mode
 
@@ -91,14 +100,14 @@ in
       unbind %
 
       # keys — resize mode (prefix+r to enter, Esc/Enter to exit)
-      bind -T resize h resize-pane -L 5
-      bind -T resize j resize-pane -D 5
-      bind -T resize k resize-pane -U 5
-      bind -T resize l resize-pane -R 5
-      bind -T resize H resize-pane -L 1
-      bind -T resize J resize-pane -D 1
-      bind -T resize K resize-pane -U 1
-      bind -T resize L resize-pane -R 1
+      bind -T resize h resize-pane -L 5 \; switch-client -T resize
+      bind -T resize j resize-pane -D 5 \; switch-client -T resize
+      bind -T resize k resize-pane -U 5 \; switch-client -T resize
+      bind -T resize l resize-pane -R 5 \; switch-client -T resize
+      bind -T resize H resize-pane -L 1 \; switch-client -T resize
+      bind -T resize J resize-pane -D 1 \; switch-client -T resize
+      bind -T resize K resize-pane -U 1 \; switch-client -T resize
+      bind -T resize L resize-pane -R 1 \; switch-client -T resize
       bind -T resize Escape switch-client -T root
       bind -T resize Enter switch-client -T root
     '';
