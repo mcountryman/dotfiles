@@ -1,6 +1,6 @@
 # AGENT.md
 
-## personality
+## basics
 
 - _DO_ be objective
 - _DONT_ flatter me
@@ -8,5 +8,6 @@
 
 ## git
 
-When committing ensure that the commit being made is not GPG signed using the
-`--no-gpg-sign` flag.
+- _DONT_ guess which git commit message format to use
+- _DO_ append an `Ai-assisted-by: <current model>` tag to the end of commits
+  when AI tools assisted in writing code
