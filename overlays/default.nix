@@ -8,4 +8,6 @@
 nixpkgs.lib.composeManyExtensions [
   helix.overlays.default
   llm-agents.overlays.shared-nixpkgs
+
+  # (import ./<name> ...)
 ]
