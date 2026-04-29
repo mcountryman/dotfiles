@@ -1,7 +1,7 @@
 # zellij-session-switcher.nu — interactive zellij session switcher
 #
 # Lists zellij sessions sorted by creation time (newest first),
-# opens fzf for selection, and switches to the chosen session.
+# opens fzf for selection, and attaches to the chosen session.
 # Exits cleanly on Ctrl-C/Escape with no session change.
 
 # Get all zellij sessions sorted by creation time (newest first)
@@ -41,4 +41,4 @@ if ($selection | is-empty) {
 }
 
 # Switch to the selected session
-zellij switch-session $selection
+zellij attach $selection
