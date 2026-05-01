@@ -1,0 +1,14 @@
+{
+  "sound": false,
+  "messages": {
+    "complete": "done: {sessionTitle}",
+    "permission": "perm: {sessionTitle}",
+    "error": "error: {sessionTitle}",
+    "question": "ask: {sessionTitle}",
+    "user_cancelled": "Session was cancelled by user: {sessionTitle}",
+    "plan_exit": "Plan ready for review: {sessionTitle}",
+    "session_started": "Session started: {sessionTitle}",
+    "user_message": "User sent a message: {sessionTitle}",
+    "client_connected": "OpenCode connected"
+  }
+}

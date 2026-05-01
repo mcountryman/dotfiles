@@ -28,4 +28,9 @@ in
     source = symlink "hosts/foldy-arm/users/marvin/opencode";
     recursive = true;
   };
+
+  home.file.".agents" = {
+    source = symlink "hosts/foldy-arm/users/marvin/agents";
+    recursive = true;
+  };
 }
