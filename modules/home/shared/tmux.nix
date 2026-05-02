@@ -4,10 +4,25 @@
 
   home.packages = with pkgs; [
     (writeShellScriptBin "tmux-pick-session" ''
-      tmux list-sessions 2>/dev/null |
-      cut -d: -f1 |
-      ${gum}/bin/gum choose --height 40 --header "switch:" |
-      xargs -I {} tmux switch-client -t {}
+      export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --color=fg:#ebdbb2,hl:#b16286" 
+      export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --color=fg+:#fbf1c7,bg+:#665c54,hl+:#d5c4a1" 
+      export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --color=info:#ebdbb2,prompt:#ebdbb2,pointer:#ebdbb2" 
+      export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --color=marker:#ebdbb2,spinner:#ebdbb2,header:#ebdbb2"
+      export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --color=border:#eddbb2,scrollbar:#7c6f64"
+
+      export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --ansi --border=sharp --reverse --cycle"
+      export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --prompt='''''' --ghost='Search...' --info=inline-right"
+      export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --gutter=' ' --pointer='>' --highlight-line"
+
+      ${sesh}/bin/sesh connect "$(${sesh}/bin/sesh list -H -d --icons | ${fzf}/bin/fzf-tmux -p 80%,50% \
+         --no-sort \
+         --bind 'ctrl-u:half-page-up' \
+         --bind 'ctrl-d:half-page-down' \
+         --bind 'ctrl-backspace:execute(tmux kill-session -t {2..})+reload(${sesh}/bin/sesh list -H -d --icons)' \
+         --preview-border=left \
+         --preview-window 'right:55%' \
+         --preview '${sesh}/bin/sesh preview {}'
+      )"
     '')
   ];
 
@@ -82,7 +97,7 @@
       bind l  select-pane -R
 
       bind f     display-popup -w 60% -h 50% -E -d "#{pane_current_path}" "tmux new-session 'tmux set status off && yazi'"
-      bind s     display-popup -w 80  -h 20  -E "tmux-pick-session"
+      bind s     run-shell "tmux-pick-session"
       bind Space display-popup -w 60% -h 50% -E "fish -l"
 
       bind c new-window
