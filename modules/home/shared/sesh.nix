@@ -1,6 +1,4 @@
+{ pkgs, ... }:
 {
-  programs.sesh = {
-    enable = true;
-
-  };
+  home.packages = with pkgs; [ sesh ];
 }

@@ -4,25 +4,24 @@
 
   home.packages = with pkgs; [
     (writeShellScriptBin "tmux-yazi" ''
-      PANE="$1"
-      CWD=$(${pkgs.tmux}/bin/tmux display-message -p -t "$PANE" '#{pane_current_path}')
-      CWD_FILE=$(mktemp); CHOOSER_FILE=$(mktemp)
+      pane="$1"
+      cwd=$(tmux display-message -p -t "$pane" '#{pane_current_path}')
+      chooser_file=$(mktemp)
 
-      ${pkgs.tmux}/bin/tmux display-popup -E -d "$CWD" -w 80% -h 80% \
-        "${pkgs.yazi}/bin/yazi --cwd-file '$CWD_FILE' --chooser-file '$CHOOSER_FILE'"
+      tmux display-popup -E -d "$cwd" -w 80% -h 50% \
+        "tmux new-session \"tmux set status off && ${yazi}/bin/yazi --chooser-file '$chooser_file'\""
 
-      CHOSEN=$(cat "$CHOOSER_FILE"); DIR=$(cat "$CWD_FILE")
-      rm -f "$CWD_FILE" "$CHOOSER_FILE"
-      [ -z "$CHOSEN$DIR" ] && exit 0
+      chosen=$(cat "$chooser_file");
 
-      TYPE=$( [ -n "$CHOSEN" ] && echo file || echo dir )
-      CMD=$(${pkgs.tmux}/bin/tmux display-message -p -t "$PANE" '#{pane_current_command}')
+      rm -f "$chooser_file"
+      [ -z "$chosen" ] && exit 0
 
-      case "$TYPE/$CMD" in
-        file/hx|file/helix) ${pkgs.tmux}/bin/tmux send-keys -t "$PANE" Escape ":open '$CHOSEN'" Enter ;;
-        file/*)             ${pkgs.tmux}/bin/tmux send-keys -t "$PANE" "cd '$(dirname "$CHOSEN")'" Enter ;;
-        dir/hx|dir/helix)   ${pkgs.tmux}/bin/tmux send-keys -t "$PANE" Escape ":cd '$DIR'" Enter ;;
-        dir/*)              ${pkgs.tmux}/bin/tmux send-keys -t "$PANE" "cd '$DIR'" Enter ;;
+      type=$( [ -f "$chosen" ] && echo file || echo dir )
+      cmd=$(tmux display-message -p -t "$pane" '#{pane_current_command}')
+
+      case "$type/$cmd" in
+        dir/hx|dir/helix)   tmux send-keys -t "$pane" Escape Escape ":cd '$chosen'" Enter ;;
+        file/hx|file/helix) tmux send-keys -t "$pane" Escape Escape ":open '$chosen'" Enter ;;
       esac
     '')
 
@@ -119,9 +118,9 @@
       bind k  select-pane -U
       bind l  select-pane -R
 
-      bind f     display-popup -w 60% -h 50% -E -d "#{pane_current_path}" "tmux new-session 'tmux set status off && yazi'"
+      bind f     run-shell "tmux-yazi"
       bind s     run-shell "tmux-pick-session"
-      bind Space display-popup -w 60% -h 50% -E "fish -l"
+      bind Space display-popup -w 80% -h 50% -E "fish -l"
 
       bind c new-window
       bind , command-prompt -I '#W' -p 'rename:' 'rename-window %%'
