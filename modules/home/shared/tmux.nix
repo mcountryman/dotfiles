@@ -9,7 +9,7 @@
       CWD_FILE=$(mktemp); CHOOSER_FILE=$(mktemp)
 
       ${pkgs.tmux}/bin/tmux display-popup -E -d "$CWD" -w 80% -h 80% \
-        "${yazi}/bin/yazi --cwd-file '$CWD_FILE' --chooser-file '$CHOOSER_FILE'"
+        "${pkgs.yazi}/bin/yazi --cwd-file '$CWD_FILE' --chooser-file '$CHOOSER_FILE'"
 
       CHOSEN=$(cat "$CHOOSER_FILE"); DIR=$(cat "$CWD_FILE")
       rm -f "$CWD_FILE" "$CHOOSER_FILE"
