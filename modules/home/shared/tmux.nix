@@ -3,6 +3,29 @@
   stylix.targets.tmux.enable = true;
 
   home.packages = with pkgs; [
+    (writeShellScriptBin "tmux-yazi" ''
+      PANE="$1"
+      CWD=$(${pkgs.tmux}/bin/tmux display-message -p -t "$PANE" '#{pane_current_path}')
+      CWD_FILE=$(mktemp); CHOOSER_FILE=$(mktemp)
+
+      ${pkgs.tmux}/bin/tmux display-popup -E -d "$CWD" -w 80% -h 80% \
+        "${yazi}/bin/yazi --cwd-file '$CWD_FILE' --chooser-file '$CHOOSER_FILE'"
+
+      CHOSEN=$(cat "$CHOOSER_FILE"); DIR=$(cat "$CWD_FILE")
+      rm -f "$CWD_FILE" "$CHOOSER_FILE"
+      [ -z "$CHOSEN$DIR" ] && exit 0
+
+      TYPE=$( [ -n "$CHOSEN" ] && echo file || echo dir )
+      CMD=$(${pkgs.tmux}/bin/tmux display-message -p -t "$PANE" '#{pane_current_command}')
+
+      case "$TYPE/$CMD" in
+        file/hx|file/helix) ${pkgs.tmux}/bin/tmux send-keys -t "$PANE" Escape ":open '$CHOSEN'" Enter ;;
+        file/*)             ${pkgs.tmux}/bin/tmux send-keys -t "$PANE" "cd '$(dirname "$CHOSEN")'" Enter ;;
+        dir/hx|dir/helix)   ${pkgs.tmux}/bin/tmux send-keys -t "$PANE" Escape ":cd '$DIR'" Enter ;;
+        dir/*)              ${pkgs.tmux}/bin/tmux send-keys -t "$PANE" "cd '$DIR'" Enter ;;
+      esac
+    '')
+
     (writeShellScriptBin "tmux-pick-session" ''
       export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --color=fg:#ebdbb2,hl:#b16286" 
       export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --color=fg+:#fbf1c7,bg+:#665c54,hl+:#d5c4a1" 

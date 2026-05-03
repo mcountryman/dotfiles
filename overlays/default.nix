@@ -10,4 +10,5 @@ nixpkgs.lib.composeManyExtensions [
   llm-agents.overlays.shared-nixpkgs
 
   # (import ./<name> ...)
+  (import ./sesh.nix)
 ]

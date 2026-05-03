@@ -1,14 +1,16 @@
 _: {
   imports = [
-    ./stylix.nix
     ./helix
-    ./fish.nix
-    ./starship.nix
-    ./tmux.nix
-    ./zellij.nix
-    ./yazi.nix
+
     ./direnv.nix
     ./eza.nix
+    ./fish.nix
+    ./sesh.nix
+    ./starship.nix
+    ./stylix.nix
+    ./tmux.nix
+    ./yazi.nix
+    ./zellij.nix
     ./zoxide.nix
   ];
 

@@ -1,0 +1,6 @@
+{
+  programs.sesh = {
+    enable = true;
+
+  };
+}
