@@ -1,17 +1,11 @@
-{ pkgs, config, ... }:
-let
-  inherit (config.lib.file) mkOutOfStoreSymlink;
-
-  root = "${config.home.homeDirectory}/Development/dotfiles";
-  symlink = name: mkOutOfStoreSymlink "${root}/${name}";
-in
+{ pkgs, ... }:
 {
   home.packages = with pkgs; [
     llm-agents.claude-code
   ];
 
-  home.file.".claude" = {
-    source = symlink "hosts/foldy-arm/users/marvin/claude";
-    recursive = true;
-  };
+  programs.fish.shellInit = ''
+    set -gx CLAUDE_CODE_DISABLE_MOUSE 1
+    set -gx CLAUDE_CODE_TMUX_TRUECOLOR 1
+  '';
 }

@@ -1,15 +1,6 @@
-{
-  lib,
-  pkgs,
-  config,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
   inherit (lib) getExe;
-  inherit (config.lib.file) mkOutOfStoreSymlink;
-
-  root = "${config.home.homeDirectory}/Development/dotfiles";
-  symlink = name: mkOutOfStoreSymlink "${root}/${name}";
 in
 {
   home.packages = with pkgs; [
@@ -23,14 +14,4 @@ in
       ${getExe llm-agents.opencode} "$@"
     '')
   ];
-
-  home.file.".config/opencode" = {
-    source = symlink "hosts/foldy-arm/users/marvin/opencode";
-    recursive = true;
-  };
-
-  home.file.".agents" = {
-    source = symlink "hosts/foldy-arm/users/marvin/agents";
-    recursive = true;
-  };
 }

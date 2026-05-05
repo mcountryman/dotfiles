@@ -1,27 +1,26 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "~/.local/bin/starship-claude",
-    "padding": 0
-  },
-  "enabledPlugins": {
-    "starship-claude@starship-claude": true,
-    "superpowers@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "claude-plugins-official": {
-      "source": {
-        "source": "github",
-        "repo": "anthropics/claude-plugins-official"
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FRONT=$(osascript -e 'tell application \"System Events\" to name of first application process whose frontmost is true' 2>/dev/null); echo \"$FRONT\" | grep -qiE 'ghostty|terminal|iterm|wezterm|alacritty|kitty|hyper' || osascript -e 'display notification \"Prompt complete\" with title \"Claude Code\" sound name \"Glass\"' 2>/dev/null; true",
+            "async": true
+          }
+        ]
       }
-    },
-    "starship-claude": {
-      "source": {
-        "source": "github",
-        "repo": "martinemde/starship-claude"
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FRONT=$(osascript -e 'tell application \"System Events\" to name of first application process whose frontmost is true' 2>/dev/null); echo \"$FRONT\" | grep -qiE 'ghostty|terminal|iterm|wezterm|alacritty|kitty|hyper' || osascript -e 'display notification \"Claude needs your input\" with title \"Claude Code\" sound name \"Glass\"' 2>/dev/null; true",
+            "async": true
+          }
+        ]
       }
-    }
-  },
-  "effortLevel": "medium",
-  "theme": "auto"
+    ]
+  }
 }

@@ -1,6 +1,7 @@
 { lib, pkgs, ... }:
 {
   imports = [
+    ./agents.nix
     ./claude.nix
     ./opencode.nix
   ];
