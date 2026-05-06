@@ -2,8 +2,6 @@
 {
   imports = [
     ./agents.nix
-    ./claude.nix
-    ./opencode.nix
   ];
 
   home.username = "marvin";
