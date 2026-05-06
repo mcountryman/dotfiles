@@ -8,3 +8,5 @@ projects
 session-env
 sessions
 shell-snapshots
+tasks
+.deep-link-register-failed
