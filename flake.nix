@@ -9,7 +9,7 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # Darwin
-    nix-darwin.url = "github:LnL7/nix-darwin";
+    nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     # Darwin - Linux builder using Rosetta
@@ -57,7 +57,6 @@
     in
     {
       darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
-        system = "aarch64-darwin";
         modules = [
           inputs.self.darwinModules.default
           ./hosts/foldy-arm
