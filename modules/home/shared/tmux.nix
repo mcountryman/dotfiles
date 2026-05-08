@@ -51,23 +51,6 @@
   programs.tmux = {
     enable = true;
 
-    # TODO: upgrade to nixos-25.11
-    #
-    # This is a temporary fix to avoid having to upgrade to 25.11 yet. If it
-    # wasn't for the need of two different nixpkgs for darwin and linux I'd
-    # just do it.
-    package = pkgs.tmux.overrideAttrs (
-      final: _prev: {
-        version = "3.6a";
-        src = pkgs.fetchFromGitHub {
-          owner = "tmux";
-          repo = "tmux";
-          rev = final.version;
-          hash = "sha256-VwOyR9YYhA/uyVRJbspNrKkJWJGYFFktwPnnwnIJ97s=";
-        };
-      }
-    );
-
     mouse = true;
     plugins = with pkgs; [
       tmuxPlugins.sensible
