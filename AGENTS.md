@@ -36,6 +36,7 @@ When committing:
 - _DO_ provide a clear subject line
 - _DO_ follow the format `<scope>: <brief desc>` when writing subject lines
 - _DO_ provide detailed breakdown
+- _NEVER_ commit ignored files without explicitly asking the user first
 
 ## Notes
 

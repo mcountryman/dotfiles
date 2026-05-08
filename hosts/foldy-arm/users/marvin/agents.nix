@@ -21,9 +21,21 @@ in
     ".agents".source = mkOutOfStoreSymlink "${userDir}/agents";
     ".claude".source = mkOutOfStoreSymlink "${userDir}/claude";
     ".config/opencode".source = mkOutOfStoreSymlink "${userDir}/opencode";
+
+    ".npmrc".text = ''
+      prefix = ''${HOME}/.npm-packages
+    '';
   };
 
+  programs.fish.shellInit = ''
+    fish_add_path $HOME/.npm-packages/bin
+    fish_add_path $HOME/.npm-packages/lib/node_modules
+  '';
+
   home.packages = with pkgs; [
+    nodejs
+
+    (mkAgentWrapper "pi" (getExe llm-agents.pi))
     (mkAgentWrapper "claude" (getExe llm-agents.claude-code))
     (mkAgentWrapper "opencode" (getExe llm-agents.opencode))
   ];
