@@ -10,7 +10,7 @@
         name = "yaml";
         auto-format = true;
         formatter = {
-          command = lib.getExe pkgs.nodePackages.prettier;
+          command = lib.getExe pkgs.prettier;
           args = [
             "--parser"
             "yaml"
