@@ -18,12 +18,16 @@
       };
 
       monospace = {
-        name = "IosevkaTerm Nerd Font";
-        package = pkgs.nerd-fonts.iosevka-term;
+        name = "SpaceMono Nerd Font";
+        package = pkgs.nerd-fonts.space-mono;
+        # name = "IosevkaTerm Nerd Font";
+        # package = pkgs.nerd-fonts.iosevka-term;
+        # name = "ProggyClean Nerd Font";
+        # package = pkgs.nerd-fonts.proggy-clean-tt;
       };
 
       sizes = {
-        terminal = 16;
+        terminal = 12;
       };
     };
 

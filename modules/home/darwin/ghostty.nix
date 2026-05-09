@@ -10,6 +10,7 @@
     settings = {
       command = "${pkgs.fish}/bin/fish";
       font-thicken = true;
+      adjust-cell-width = "-6%";
       macos-titlebar-style = "hidden";
     };
   };
