@@ -23,5 +23,7 @@
       }
     ]
   },
-  "effortLevel": "medium"
+  "effortLevel": "medium",
+  "skipDangerousModePermissionPrompt": true,
+  "agentPushNotifEnabled": true
 }

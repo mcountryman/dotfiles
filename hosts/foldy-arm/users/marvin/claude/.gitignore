@@ -3,10 +3,13 @@ cache
 file-history
 history.jsonl
 mcp-needs-auth-cache.json
+paste-cache/
 plans
 projects
 session-env
 sessions
 shell-snapshots
 tasks
+.credentials.json
 .deep-link-register-failed
+.last-cleanup
