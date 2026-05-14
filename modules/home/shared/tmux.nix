@@ -82,7 +82,8 @@
       # input
       set -g extended-keys on
       set -g extended-keys-format csi-u
-      set -g set-clipboard external
+      set -g set-clipboard on
+      set -as terminal-features ',*:clipboard'
 
       # theme
       set -g status-style bg=#1d2021,fg=default

@@ -42,6 +42,7 @@
         cursorline = true;
         line-number = "relative";
         true-color = true;
+        clipboard-provider = "termcode";
 
         lsp = {
           display-inlay-hints = true;
