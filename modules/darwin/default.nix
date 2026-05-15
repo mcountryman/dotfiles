@@ -35,11 +35,6 @@
         "homebrew/homebrew-bundle" = homebrew-bundle;
       };
 
-      sops = {
-        defaultSopsFile = ../../secrets.yaml;
-        defaultSopsFormat = "yaml";
-      };
-
       system.stateVersion = 6;
     }
   ];

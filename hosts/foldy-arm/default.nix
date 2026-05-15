@@ -1,7 +1,5 @@
 { pkgs, ... }:
 {
-  sops.secrets."buildMachines/nix.shramp".sopsFile = ./secrets.yaml;
-
   nixpkgs.hostPlatform = "aarch64-darwin";
 
   home-manager.users.marvin.imports = [ ./users/marvin ];
