@@ -1,0 +1,28 @@
+# Auth & credentials
+.credentials.json
+
+# Session history
+projects/
+sessions/
+
+# Runtime state
+cache/
+backups/
+file-history/
+paste-cache/
+shell-snapshots/
+session-env/
+tasks/
+plans/
+
+# Transient files
+history.jsonl
+mcp-needs-auth-cache.json
+.deep-link-register-required
+.last-cleanup
+
+# Dynamic app state
+.claude.json
+
+# Installed marketplace plugins
+plugins/

@@ -1,6 +1,5 @@
 {
   imports = [
-    ./agents.nix
     ./gpg.nix
   ];
 

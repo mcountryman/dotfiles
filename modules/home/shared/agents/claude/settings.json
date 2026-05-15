@@ -25,5 +25,7 @@
   },
   "effortLevel": "medium",
   "skipDangerousModePermissionPrompt": true,
-  "agentPushNotifEnabled": true
+  "theme": "dark",
+  "agentPushNotifEnabled": true,
+  "autoCompactEnabled": false
 }

@@ -1,0 +1,8 @@
+# Auth tokens
+auth.json
+
+# Session history
+sessions/
+
+# Bundled binaries
+bin/
