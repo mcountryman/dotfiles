@@ -66,11 +66,11 @@
       };
 
       nixosConfigurations = {
-        "orbie-arm" = nixpkgs.lib.nixosSystem {
+        "orbstack" = nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
             inputs.self.nixosModules.default
-            ./hosts/orbie-arm
+            ./hosts/orbstack
           ];
         };
       };

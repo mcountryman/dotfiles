@@ -19,6 +19,7 @@
     casks = [
       "steam"
       "firefox"
+      "orbstack"
       "bitwarden"
     ];
   };
