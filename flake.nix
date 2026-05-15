@@ -56,28 +56,45 @@
       ];
     in
     {
-      darwinConfigurations."foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
-        modules = [
-          inputs.self.darwinModules.default
-          ./hosts/foldy-arm
-        ];
+      darwinConfigurations = {
+        "foldy-arm" = inputs.nix-darwin.lib.darwinSystem {
+          modules = [
+            inputs.self.darwinModules.default
+            ./hosts/foldy-arm
+          ];
+        };
       };
 
-      homeConfigurations."marvin@foldy-arm" = inputs.home-manager.lib.homeManagerConfiguration {
-        pkgs = import nixpkgs {
-          system = "aarch64-darwin";
-          overlays = [ inputs.self.overlays.dotfiles ];
+      nixosConfigurations = {
+        "orbie-arm" = nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          modules = [
+            inputs.self.nixosModules.default
+            ./hosts/orbie-arm
+          ];
         };
+      };
 
-        modules = [
-          inputs.self.homeModules.darwin
-          inputs.self.homeModules.users.marvin
-          ./hosts/foldy-arm/users/marvin
-        ];
+      homeConfigurations = {
+        "marvin@foldy-arm" = inputs.home-manager.lib.homeManagerConfiguration {
+          pkgs = import nixpkgs {
+            system = "aarch64-darwin";
+            overlays = [ inputs.self.overlays.dotfiles ];
+          };
+
+          modules = [
+            inputs.self.homeModules.darwin
+            inputs.self.homeModules.users.marvin
+            ./hosts/foldy-arm/users/marvin
+          ];
+        };
       };
 
       darwinModules.default = inputs.self.darwinModules.dotfiles;
       darwinModules.dotfiles = import ./modules/darwin inputs;
+
+      nixosModules.default = inputs.self.nixosModules.dotfiles;
+      nixosModules.dotfiles = import ./modules/nixos inputs;
 
       overlays.default = inputs.self.overlays.dotfiles;
       overlays.dotfiles = import ./overlays inputs;

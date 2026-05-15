@@ -1,6 +1,7 @@
+{ self, home-manager, ... }:
 {
-  users.users.marvin = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-  };
+  imports = [
+    (import ./home.nix { inherit self home-manager; })
+    ../shared
+  ];
 }
