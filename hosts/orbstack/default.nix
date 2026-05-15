@@ -6,7 +6,7 @@
     ./orbstack.nix
   ];
 
-  networking.hostName = "orbie-arm";
+  networking.hostName = "orbstack";
   nixpkgs.hostPlatform = "aarch64-linux";
 
   # Random stuff I want on orbie-arm
