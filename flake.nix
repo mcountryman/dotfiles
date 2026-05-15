@@ -106,13 +106,13 @@
         users.marvin = import ./modules/home/users/marvin inputs;
       };
 
-      devShell = eachPkgs (
-        pkgs:
-        with pkgs;
-        mkShell {
-          packages = [
-            just
-          ];
+      devShells = eachPkgs (
+        pkgs: with pkgs; {
+          default = mkShell {
+            packages = [
+              just
+            ];
+          };
         }
       );
 
