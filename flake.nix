@@ -106,6 +106,16 @@
         users.marvin = import ./modules/home/users/marvin inputs;
       };
 
+      devShell = eachPkgs (
+        pkgs:
+        with pkgs;
+        mkShell {
+          packages = [
+            just
+          ];
+        }
+      );
+
       formatter = eachPkgs (pkgs: pkgs.nixfmt-tree);
 
       checks = eachPkgs (pkgs: {

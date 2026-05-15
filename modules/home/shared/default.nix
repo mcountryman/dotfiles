@@ -5,6 +5,7 @@ _: {
     ./direnv.nix
     ./eza.nix
     ./fish.nix
+    ./projects.nix
     ./sesh.nix
     ./starship.nix
     ./stylix.nix
