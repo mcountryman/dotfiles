@@ -5,21 +5,21 @@
   ...
 }:
 let
-  inherit (lib) getExe;
-  inherit (builtins) concatStringsSep;
+  inherit (lib) getExe escapeShellArg;
+  inherit (builtins) concatStringsSep readFile;
   inherit (config.lib.file) mkOutOfStoreSymlink;
 
   self = "${config.home.homeDirectory}/Projects/dotfiles/modules/home/shared/agents";
   home = config.home.homeDirectory;
   mkPiBin =
-    name: rules:
+    name: rules: promptFile:
     with pkgs;
     writeShellScriptBin name ''
       export PI_NONO_PROFILE="${name}"
       export PI_CODING_AGENT_DIR="${home}/.pi"
       export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
-      ${getExe nono} run --profile pi-readonly --allow-cwd  ${concatStringsSep " " rules} -- ${getExe llm-agents.pi} "$@"
+      ${getExe nono} run --profile pi-readonly --allow-cwd  ${concatStringsSep " " rules} -- ${getExe llm-agents.pi} --append-system-prompt ${escapeShellArg (readFile promptFile)} "$@"
     '';
 in
 {
@@ -35,10 +35,10 @@ in
         "--allow ~/.cache/nix"
         # "--allow /nix/var/nix/daemon-socket" # Linux
         # "--allow /var/run/nix-daemon.socket" # Darwin
-      ])
+      ] ./pi/agent/AGENT.md)
 
-      (mkPiBin "pi-readonly" [ ])
-      (mkPiBin "pi-plan" [ "--allow $PWD/.agents" ])
+      (mkPiBin "pi-readonly" [ ] ./pi/agent/AGENT_READONLY.md)
+      (mkPiBin "pi-plan" [ "--allow $PWD/.agents" ] ./pi/agent/AGENT_PLAN.md)
 
       (writeShellScriptBin "claude" ''
         export CLAUDE_CONFIG_DIR="${home}/.config/claude";
