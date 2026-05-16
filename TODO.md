@@ -2,6 +2,8 @@
 
 ## PI Agent — Sandbox
 
-- Walk up the directory tree from `$PWD` to find the nearest `.agents` folder,
-  and grant read access to it in the sandbox configuration. This applies to the
-  custom PI agent binaries and their `nono` sandbox wrapper.
+- Allow read/write `.agents/` regardless of $PWD
+- Allow read of `.git` regardless of $PWD
+- Add notifications (escape the sandbox! but, only a little)
+- Add plan, create, code-review skills/agents/tasks
+- Maybe sub-agents?
