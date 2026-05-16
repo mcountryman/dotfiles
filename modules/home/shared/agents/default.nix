@@ -6,33 +6,39 @@
 }:
 let
   inherit (lib) getExe;
+  inherit (builtins) concatStringsSep;
   inherit (config.lib.file) mkOutOfStoreSymlink;
 
   self = "${config.home.homeDirectory}/Projects/dotfiles/modules/home/shared/agents";
   home = config.home.homeDirectory;
+  mkPiBin =
+    name: rules:
+    with pkgs;
+    writeShellScriptBin name ''
+      export PI_NONO_PROFILE="${name}"
+      export PI_CODING_AGENT_DIR="${home}/.pi"
+      export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+
+      ${getExe nono} run --profile pi-readonly --allow-cwd  ${concatStringsSep " " rules} -- ${getExe llm-agents.pi} "$@"
+    '';
 in
 {
-  imports = [ ./profiles.nix ];
-
   home = {
     packages = with pkgs; [
       pnpm
       nono
       nodejs
 
-      (writeShellScriptBin "pi" ''
-        export PI_CODING_AGENT_DIR="${home}/.config/pi"
-        export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+      (mkPiBin "pi" [
+        "--allow $PWD"
+        "--read /nix/store"
+        "--allow ~/.cache/nix"
+        # "--allow /nix/var/nix/daemon-socket" # Linux
+        # "--allow /var/run/nix-daemon.socket" # Darwin
+      ])
 
-        ${getExe nono} run --allow-cwd --profile pi -- ${getExe llm-agents.pi} "$@"
-      '')
-
-      (writeShellScriptBin "pi-nix" ''
-        export PI_CODING_AGENT_DIR="${home}/.config/pi"
-        export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-
-        ${getExe nono} run --allow-cwd --profile pi-nix -- ${getExe llm-agents.pi} "$@"
-      '')
+      (mkPiBin "pi-readonly" [ ])
+      (mkPiBin "pi-plan" [ "--allow $PWD/.agents" ])
 
       (writeShellScriptBin "claude" ''
         export CLAUDE_CONFIG_DIR="${home}/.config/claude";
@@ -45,8 +51,54 @@ in
     file = {
       ".agents".source = mkOutOfStoreSymlink "${self}/agents";
 
-      ".config/pi".source = mkOutOfStoreSymlink "${self}/pi";
+      ".pi".source = mkOutOfStoreSymlink "${self}/pi";
       ".config/claude".source = mkOutOfStoreSymlink "${self}/claude";
     };
+  };
+
+  xdg.configFile = {
+    "nono/profiles/pi-readonly.json".text =
+      let
+        inherit (lib) splitString;
+        inherit (builtins) toJSON filter readFile;
+
+        rootPaths = with pkgs; [
+          llm-agents.pi
+
+          cacert
+          which
+          fd
+          bat
+          ripgrep
+        ];
+
+        closure = pkgs.closureInfo { inherit rootPaths; };
+        storePaths = filter (s: s != "") (splitString "\n" (readFile "${closure}/store-paths"));
+      in
+
+      toJSON {
+        meta.name = "pi-readonly";
+
+        filesystem = {
+          # pi won't load model configuration without it.. :sigh:
+          allow = [ "$HOME/.pi" ];
+
+          read = storePaths ++ [
+            # dotfiles
+            "$HOME/Projects/dotfiles"
+            # config
+            "$HOME/.config/git"
+            # tmp
+            "/tmp"
+            # agents
+            "$HOME/.pi"
+            "$HOME/.agents"
+            "$HOME/.config/claude"
+            # nodejs
+            "$HOME/.npm"
+            "$HOME/.cache/pnpm"
+          ];
+        };
+      };
   };
 }
