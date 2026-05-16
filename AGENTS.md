@@ -30,6 +30,7 @@ When making modifications:
 
 - _DO_ run `nix flake check`
 - _DO_ run `nix fmt`
+- _DO_ run `biome check` in `modules/home/shared/agents/pi/extensions` when editing extensions
 
 When committing:
 
