@@ -1,5 +1,7 @@
+.agents/plans
 .direnv/
 .claude/
 .opencode/
+.pnpm-store
 docs/superpowers
 result

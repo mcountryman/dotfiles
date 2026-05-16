@@ -38,7 +38,7 @@ in
       ] ./pi/agent/AGENT.md)
 
       (mkPiBin "pi-readonly" [ ] ./pi/agent/AGENT_READONLY.md)
-      (mkPiBin "pi-plan" [ "--allow $PWD/.agents" ] ./pi/agent/AGENT_PLAN.md)
+      (mkPiBin "pi-plan" [ "--allow $PWD/.agents/plans" ] ./pi/agent/AGENT_PLAN.md)
 
       (writeShellScriptBin "claude" ''
         export CLAUDE_CONFIG_DIR="${home}/.config/claude";
@@ -63,13 +63,29 @@ in
         inherit (builtins) toJSON filter readFile;
 
         rootPaths = with pkgs; [
+          # self
           llm-agents.pi
 
+          # ssl
           cacert
+
+          # misc
           which
           fd
           bat
           ripgrep
+
+          # dev
+          git
+
+          # dev/js
+          pnpm
+          biome
+          nodejs
+
+          # dev/rust
+          clippy
+          rustfmt
         ];
 
         closure = pkgs.closureInfo { inherit rootPaths; };
