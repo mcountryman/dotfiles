@@ -12,47 +12,41 @@ let
   home = config.home.homeDirectory;
 in
 {
-  home.sessionVariables = {
-    CLAUDE_CONFIG_DIR = "${home}/.config/claude";
-  };
+  imports = [ ./profiles.nix ];
 
-  home.packages = with pkgs; [
-    pnpm
-    nono
-    nodejs
+  home = {
+    packages = with pkgs; [
+      pnpm
+      nono
+      nodejs
 
-    (writeShellScriptBin "pi" ''
-      export PI_CODING_AGENT_DIR="${home}/.config/pi"
+      (writeShellScriptBin "pi" ''
+        export PI_CODING_AGENT_DIR="${home}/.config/pi"
+        export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
-      ${getExe nono} run \
-        --allow-cwd \
-        --allow /tmp \
-        --allow "${home}/.agents" \
-        --allow "${home}/.config/pi" \
-        --read /nix \
-        --read "${home}/.cache/pnpm" \
-        -- ${getExe llm-agents.pi}
-    '')
+        ${getExe nono} run --allow-cwd --profile pi -- ${getExe llm-agents.pi} "$@"
+      '')
 
-    (writeShellScriptBin "claude" ''
-      export CLAUDE_CONFIG_DIR="${home}/.config/claude";
+      (writeShellScriptBin "pi-nix" ''
+        export PI_CODING_AGENT_DIR="${home}/.config/pi"
+        export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
-      ${getExe nono} run \
-        --allow-cwd \
-        --allow /tmp \
-        --allow "${home}/.agents" \
-        --allow "${home}/.config/pi" \
-        --read /nix \
-        --read "${home}/.cache/pnpm" \
-        --profile claude-code \
-        -- ${getExe llm-agents.claude-code}
-    '')
-  ];
+        ${getExe nono} run --allow-cwd --profile pi-nix -- ${getExe llm-agents.pi} "$@"
+      '')
 
-  home.file = {
-    ".agents".source = mkOutOfStoreSymlink "${self}/agents";
+      (writeShellScriptBin "claude" ''
+        export CLAUDE_CONFIG_DIR="${home}/.config/claude";
+        export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
-    ".config/pi".source = mkOutOfStoreSymlink "${self}/pi";
-    ".config/claude".source = mkOutOfStoreSymlink "${self}/claude";
+        ${getExe nono} run --allow-cwd --profile claude -- ${getExe llm-agents.claude-code} "$@"
+      '')
+    ];
+
+    file = {
+      ".agents".source = mkOutOfStoreSymlink "${self}/agents";
+
+      ".config/pi".source = mkOutOfStoreSymlink "${self}/pi";
+      ".config/claude".source = mkOutOfStoreSymlink "${self}/claude";
+    };
   };
 }

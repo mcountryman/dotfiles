@@ -1,6 +1,7 @@
 {
   "lastChangelogVersion": "0.74.0",
-  "defaultProvider": "anthropic",
-  "defaultModel": "claude-sonnet-4-6",
-  "defaultThinkingLevel": "medium"
+  "defaultProvider": "opencode-go",
+  "defaultModel": "glm-5.1",
+  "defaultThinkingLevel": "medium",
+  "theme": "purple"
 }
