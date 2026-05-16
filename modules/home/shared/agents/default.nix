@@ -19,7 +19,11 @@ let
       export PI_CODING_AGENT_DIR="${home}/.pi"
       export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
-      ${getExe nono} run --profile pi-readonly --allow-cwd  ${concatStringsSep " " rules} -- ${getExe llm-agents.pi} --append-system-prompt ${escapeShellArg (readFile promptFile)} "$@"
+      ${getExe nono} run \
+        --allow-cwd  \
+        --profile pi-readonly \
+        ${concatStringsSep " " rules} \
+        -- ${getExe llm-agents.pi} --append-system-prompt ${escapeShellArg (readFile promptFile)} "$@"
     '';
 in
 {
