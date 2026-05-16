@@ -15,6 +15,8 @@
     systemPackages = with pkgs; [
       git
       btop
+      glow
+      sops
     ];
   };
 }
