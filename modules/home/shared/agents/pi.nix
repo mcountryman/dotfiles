@@ -10,8 +10,11 @@ let
       export PI_NONO_PROFILE="${name}"
       export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
+      git_common_dir="$(git rev-parse --git-common-dir)"
+
       ${getExe nono} run \
         --allow-cwd  \
+        --allow "''${git_common_dir:-/tmp}" \
         --profile pi-readonly \
         ${concatStringsSep " " rules} \
         -- ${getExe llm-agents.pi} --append-system-prompt ${escapeShellArg (readFile promptFile)} "$@"
