@@ -16,7 +16,6 @@ let
     with pkgs;
     writeShellScriptBin name ''
       export PI_NONO_PROFILE="${name}"
-      export PI_CODING_AGENT_DIR="${home}/.pi"
       export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
       ${getExe nono} run \
@@ -39,10 +38,10 @@ in
         "--allow ~/.cache/nix"
         # "--allow /nix/var/nix/daemon-socket" # Linux
         # "--allow /var/run/nix-daemon.socket" # Darwin
-      ] ./pi/agent/AGENT.md)
+      ] ./pi/subagents/AGENT.md)
 
-      (mkPiBin "pi-readonly" [ ] ./pi/agent/AGENT_READONLY.md)
-      (mkPiBin "pi-plan" [ "--allow $PWD/.agents/plans" ] ./pi/agent/AGENT_PLAN.md)
+      (mkPiBin "pi-readonly" [ ] ./pi/subagents/AGENT_READONLY.md)
+      (mkPiBin "pi-plan" [ "--allow $PWD/.agents/plans" ] ./pi/subagents/AGENT_PLAN.md)
 
       (writeShellScriptBin "claude" ''
         export CLAUDE_CONFIG_DIR="${home}/.config/claude";
