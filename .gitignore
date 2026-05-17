@@ -1,4 +1,5 @@
 .agents/plans
+.agents/worktrees
 .direnv/
 .claude/
 .opencode/
