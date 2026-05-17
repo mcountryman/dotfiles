@@ -39,12 +39,25 @@ Then build context before asking any questions:
 
 1. **Project conventions** — check for `AGENTS.md`, `CLAUDE.md`, `.pi/AGENT.md`,
    `.agents/AGENT.md` in the project root and ancestors. Read them.
-2. **Code exploration** — read relevant source files, understand current
+2. **Quality tools discovery** — identify lint, format, and quality-checking tools
+   applicable to the files being changed. Discovery order:
+   a. **Explicit tools** — check `AGENTS.md` (or equivalent) for any explicitly
+      documented quality commands (e.g., "run `nix flake check`", "run `biome check`").
+      These are authoritative and must be included.
+   b. **Configuration-based tools** — scan the project for tool config files
+      (e.g., `biome.json`, `.eslintrc*`, `.prettierrc*`, `pyproject.toml` with
+      `[tool.ruff]`, `flake.nix` formatter/check definitions, `Makefile` lint
+      targets). If a config exists, include the corresponding tool.
+   c. **Style exemplars** — identify 2-3 existing human-written source files in the
+      same language and same type as the files being changed. These serve as
+      style references for conformance checking.
+3. **Code exploration** — read relevant source files, understand current
    structure, identify touchpoints for the requested change.
-3. **Web search** (optional) — if the task involves unfamiliar libraries, APIs,
+4. **Web search** (optional) — if the task involves unfamiliar libraries, APIs,
    or external services, search for documentation. Skip if not needed.
 
 Write exploration findings to the plan file's `Context` section immediately.
+Write discovered quality tools to the plan file's `Quality Tools` section.
 This ensures context survives session interruption.
 
 ### Phase 2: Grill
@@ -141,6 +154,23 @@ If a file with the same name already exists, warn the user before overwriting.
 [Exploration findings: current state, relevant files, project conventions,
 external docs consulted. Written during Phase 1.]
 
+## Quality Tools
+
+| File Pattern | Tool | Command | Source |
+| ------------ | ---- | ------- | ------ |
+| `*.nix` | nixfmt | `nix fmt --check` | AGENTS.md / flake.nix formatter |
+| `*.nix` | nix flake check | `nix flake check` | AGENTS.md |
+| `modules/home/shared/agents/pi/agent/extensions/**/*.ts` | biome | `biome check` | AGENTS.md / biome.json |
+| ... | ... | ... | ... |
+
+**Style Exemplars:**
+
+| Language/Type | Reference File(s) |
+| ------------- | ----------------- |
+| Nix module | `path/to/existing/module.nix` |
+| TypeScript extension | `path/to/existing/extension.ts` |
+| ... | ... | ... |
+
 ## Decisions
 
 -
@@ -190,7 +220,25 @@ Line-range format: `filename.ext:L<start>-L<end>`
 
   Run: `exact test command` Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Quality verification**
+
+  Run ALL applicable quality tools for the changed files. Every tool must pass.
+
+  | Tool | Command | Expected |
+  | ---- | ------- | -------- |
+  | [tool] | `[command]` | PASS (no output / exit 0) |
+  | [tool] | `[command]` | PASS (no output / exit 0) |
+
+  **Style conformance check:** Compare new/modified code against the style
+  exemplars listed in the `Quality Tools` section. Verify:
+  - Naming conventions match (variable, function, file naming patterns)
+  - Code structure patterns match (module layout, import ordering, export style)
+  - Idiomatic patterns are followed (language-specific constructs, error handling style)
+
+  If deviations are found, fix them before proceeding. Deviations are only
+  acceptable if the new code's purpose genuinely requires a different pattern.
+
+- [ ] **Step 6: Commit**
 
   ```bash
   git add [files]
@@ -210,9 +258,19 @@ replace the test/implement cycle with a single verification step:
 
   [commands or content]
 
-- [ ] **Step 2: Verify**
+- [ ] **Step 2: Quality verification**
 
-  Run: `exact command` Expected: [specific output]
+  Run ALL applicable quality tools for the changed files. Every tool must pass.
+
+  | Tool | Command | Expected |
+  | ---- | ------- | -------- |
+  | [tool] | `[command]` | PASS (no output / exit 0) |
+  | [tool] | `[command]` | PASS (no output / exit 0) |
+
+  **Style conformance check:** Compare new/modified code against the style
+  exemplars listed in the `Quality Tools` section. Verify naming, structure,
+  and idiomatic patterns match. If deviations are found, fix them before
+  proceeding.
 
 - [ ] **Step 3: Commit**
 
@@ -232,20 +290,21 @@ by the execution agent as each step is completed.
    for the above" without actual test code, "similar to Task N" without
    repeating the code.
 2. **TDD for executable code.** Tasks producing code follow: write failing test
-   → verify fail → implement → verify pass → commit. Config/doc/structure tasks
-   use verify step instead.
+   → verify fail → implement → verify pass → quality check → commit. Config/doc/structure tasks
+   use quality check + verify step instead.
 3. **Exact file paths always.** Never write "the relevant file" or "in the
    appropriate module."
 4. **Complete code in every step.** If a step changes code, show the code.
 5. **Verification in every task.** Exact commands with expected output.
-6. **One `ask` tool call per turn.** Never batch questions during grilling.
+6. **Quality verification in every code task.** Every task that creates or modifies source files must include a quality verification step. All applicable tools must pass. Style conformance against exemplars must be checked.
+7. **One `ask` tool call per turn.** Never batch questions during grilling.
    Always use the `ask` tool to present the question to the user.
-7. **Persist after every answer.** Write decisions and updates to the plan file
+8. **Persist after every answer.** Write decisions and updates to the plan file
    after each grilling answer.
-8. **Scope check.** If the task spans multiple independent subsystems, suggest
+9. **Scope check.** If the task spans multiple independent subsystems, suggest
    splitting before proceeding. If <1 commit, suggest doing it directly.
-9. **DRY, YAGNI.** Plans should not repeat information. Reference by section,
-   don't duplicate.
-10. **Commit messages per task.** Use conventional commit format.
-11. **Task dependencies.** Every task declares what it depends on.
-12. **Line-range format.** Use `filename.ext:L<start>-L<end>` for modifications.
+10. **DRY, YAGNI.** Plans should not repeat information. Reference by section,
+    don't duplicate.
+11. **Commit messages per task.** Use conventional commit format.
+12. **Task dependencies.** Every task declares what it depends on.
+13. **Line-range format.** Use `filename.ext:L<start>-L<end>` for modifications.
