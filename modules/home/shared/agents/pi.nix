@@ -23,7 +23,6 @@ in
       pnpm
       nono
       nodejs
-      jq # Used by pi-notify systemd service
 
       (mkPiBin "pi" [
         "--allow $PWD"
