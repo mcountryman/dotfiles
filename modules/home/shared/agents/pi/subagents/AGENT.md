@@ -11,6 +11,7 @@ access is as follows:
 | `/tmp`             | Temporary files                                                                       |
 | `~/.agents`        | Agent config/data (symlink → `~/Projects/dotfiles/modules/home/shared/agents/agents`) |
 | `~/.pi`            | Pi config (symlink → `~/Projects/dotfiles/modules/home/shared/agents/pi`)             |
+| `~/.pi/notify`     | Notification bridge file — pi extension writes, systemd forwarder reads & truncates  |
 | `~/.config/claude` | Claude config (symlink → `~/Projects/dotfiles/modules/home/shared/agents/claude`)     |
 
 ### Read-only (`--read`)

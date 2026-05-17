@@ -1,8 +1,8 @@
 {
   "lastChangelogVersion": "0.74.0",
   "defaultProvider": "openrouter",
-  "defaultModel": "z-ai/glm-5.1",
-  "defaultThinkingLevel": "medium",
+  "defaultModel": "moonshotai/kimi-k2.6",
+  "defaultThinkingLevel": "high",
   "theme": "purple",
   "compaction": {
     "enabled": false

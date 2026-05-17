@@ -31,6 +31,7 @@ in
       pnpm
       nono
       nodejs
+      jq # Used by pi-notify systemd service
 
       (mkPiBin "pi" [
         "--allow $PWD"
@@ -119,5 +120,45 @@ in
           ];
         };
       };
+  };
+
+  systemd.user = lib.optionalAttrs pkgs.stdenv.isLinux {
+    paths.pi-notify = {
+      Unit.Description = "Watch pi notification file";
+      Path = {
+        PathChanged = "${home}/.pi/notify";
+        Unit = "pi-notify.service";
+      };
+      Install.WantedBy = [ "default.target" ];
+    };
+
+    services.pi-notify = {
+      Unit.Description = "Forward pi notifications to macOS";
+      Service = {
+        Type = "simple";
+        ExecStart = "${pkgs.writeShellScript "pi-notify-forward" ''
+          NOTIFY_FILE="${home}/.pi/notify"
+
+          # Skip if file doesn't exist or is empty
+          [ ! -f "$NOTIFY_FILE" ] && exit 0
+          [ ! -s "$NOTIFY_FILE" ] && exit 0
+
+          # Read all lines, then truncate
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+
+            # Parse JSON and build osascript command using jq for safe escaping
+            osascript_cmd=$(echo "$line" | ${pkgs.jq}/bin/jq -r '"display notification \"\(.message // "Done")\" with title \"\(.title // "Pi")\" subtitle \"\(.subtitle // "")\""')
+
+            # Send via OrbStack mac CLI
+            ${pkgs.lib.getExe' pkgs.coreutils "env"} PATH="/opt/orbstack-guest/bin:$PATH" mac run osascript -e "$osascript_cmd"
+          done < "$NOTIFY_FILE"
+
+          # Truncate the file after processing
+          : > "$NOTIFY_FILE"
+        ''}";
+      };
+      Install.WantedBy = [ "default.target" ];
+    };
   };
 }
