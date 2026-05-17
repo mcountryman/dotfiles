@@ -9,7 +9,7 @@ in
         export CLAUDE_CONFIG_DIR="$HOME/.config/claude";
         export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
-        ${getExe nono} run --allow-cwd --profile claude -- ${getExe llm-agents.claude-code} "$@"
+        ${getExe nono} run --allow-cwd --profile claude-code -- ${getExe llm-agents.claude-code} "$@"
       '')
     ];
   };
