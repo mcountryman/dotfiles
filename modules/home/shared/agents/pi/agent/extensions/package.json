@@ -1,6 +1,12 @@
 {
 	"private": true,
 	"dependencies": {
-		"@mariozechner/pi-coding-agent": "0.73.1"
+		"@mariozechner/pi-coding-agent": "0.73.1",
+		"exa-js": "^2.13.0",
+		"node-html-parser": "^7.1.0",
+		"turndown": "^7.2.4"
+	},
+	"devDependencies": {
+		"@types/turndown": "^5.0.6"
 	}
 }

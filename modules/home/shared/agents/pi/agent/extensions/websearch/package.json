@@ -1,8 +1,0 @@
-{
-	"name": "pi-extension-websearch",
-	"private": true,
-	"dependencies": {
-		"exa-js": "^1.4.6",
-		"node-html-parser": "^7.0.1"
-	}
-}
