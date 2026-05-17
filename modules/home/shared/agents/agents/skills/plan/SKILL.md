@@ -49,9 +49,20 @@ This ensures context survives session interruption.
 
 ### Phase 2: Grill
 
-Ask the user questions ONE AT A TIME. Never batch. The goal is shared
-understanding — both agent and user should converge on exactly what needs to be
-built.
+Ask the user questions ONE AT A TIME using the `ask` tool. Never batch. The
+goal is shared understanding — both agent and user should converge on exactly
+what needs to be built.
+
+**Before asking a question, always check:** Can this be answered by reading
+code, documentation, configuration, or project conventions? If yes, read the
+relevant files and infer the answer instead of asking. Only ask the user when
+the answer requires their intent, preference, or a decision that cannot be
+derived from the codebase.
+
+**Never repeat questions.** Track all previous questions and answers in the
+plan file's `Decisions` section. Before formulating a new question, review what
+has already been asked and answered. If a question touches on previously
+covered ground, restate the known answer instead of re-asking.
 
 Question types to use (adapted from requirements elicitation):
 
@@ -60,6 +71,12 @@ Question types to use (adapted from requirements elicitation):
 - **Confirming**: "To confirm: [restate understanding]. Correct?"
 - **Probing**: "What if [edge case]? How should that be handled?"
 - **Prioritizing**: "Between [A] and [B], which matters more?"
+
+**Using the `ask` tool:** Call the `ask` tool with a single question and at
+least one option. Use the `ask` tool's `questions` parameter — an array with one
+question object containing a `question` string and an `options` array. For
+open-ended questions, include a `"Other / custom answer"` option so the user can
+type freely.
 
 After EVERY answer:
 
@@ -73,9 +90,11 @@ function signature, and every test case without guessing. Typically this takes
 5-10 questions. If unsure whether understanding is complete, ask one more
 question.
 
-**Enforcement:** Format each grilling response as exactly one question. No
-preamble, no "Great, thanks!" — just the next question. If you must acknowledge,
-keep it to one sentence before the question.
+**Enforcement:** Each grilling turn must call the `ask` tool with exactly one
+question. No preamble, no "Great, thanks!" — just the question in the `ask`
+tool call. If you must acknowledge the answer, keep it to one sentence in the
+response after the `ask` tool result, then call `ask` again with the next
+question.
 
 ### Phase 3: Plan
 
@@ -219,7 +238,8 @@ by the execution agent as each step is completed.
    appropriate module."
 4. **Complete code in every step.** If a step changes code, show the code.
 5. **Verification in every task.** Exact commands with expected output.
-6. **One question per turn.** Never batch questions during grilling.
+6. **One `ask` tool call per turn.** Never batch questions during grilling.
+   Always use the `ask` tool to present the question to the user.
 7. **Persist after every answer.** Write decisions and updates to the plan file
    after each grilling answer.
 8. **Scope check.** If the task spans multiple independent subsystems, suggest
