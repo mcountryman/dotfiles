@@ -1,6 +1,15 @@
 {
-  "lastChangelogVersion": "0.73.1",
-  "defaultProvider": "opencode-go",
-  "defaultModel": "kimi-k2.6",
-  "defaultThinkingLevel": "medium"
+  "lastChangelogVersion": "0.74.0",
+  "defaultProvider": "openrouter",
+  "defaultModel": "deepseek/deepseek-v4-pro",
+  "defaultThinkingLevel": "high",
+  "theme": "purple",
+  "compaction": {
+    "enabled": false
+  },
+  "enabledModels": [
+    "openrouter/z-ai/glm-5.1",
+    "openrouter/moonshotai/kimi-k2.6",
+    "openrouter/deepseek/deepseek-v4-pro"
+  ]
 }
