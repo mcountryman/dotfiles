@@ -1,8 +1,12 @@
 # Auth tokens
-auth.json
+agent/auth.json
 
 # Session history
-sessions/
+agent/sessions/
 
-# Bundled binaries
-bin/
+# Node modules
+agent/extensions/**/node_modules/
+node_modules/
+
+# Run history
+agent/run-history.jsonl
