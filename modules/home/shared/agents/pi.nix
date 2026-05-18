@@ -35,8 +35,9 @@ in
         # "--allow /var/run/nix-daemon.socket" # Darwin
       ] ./pi/subagents/AGENT.md)
 
-      (mkPiBin "pi-readonly" [ ] ./pi/subagents/AGENT_READONLY.md)
-      (mkPiBin "pi-plan" [ "--allow $PWD/.agents/plans" ] ./pi/subagents/AGENT_PLAN.md)
+      (writeShellScriptBin "pi-raw" ''
+        ${getExe llm-agents.pi} "$@"
+      '')
     ];
   };
 

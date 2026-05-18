@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.74.0",
   "defaultProvider": "openrouter",
-  "defaultModel": "z-ai/glm-5.1",
+  "defaultModel": "deepseek/deepseek-v4-pro",
   "defaultThinkingLevel": "high",
   "theme": "purple",
   "compaction": {
@@ -10,6 +10,7 @@
   "enabledModels": [
     "openrouter/z-ai/glm-5.1",
     "openrouter/moonshotai/kimi-k2.6",
-    "openrouter/deepseek/deepseek-v4-pro"
+    "openrouter/deepseek/deepseek-v4-pro",
+    "ollama/gemma4:latest"
   ]
 }

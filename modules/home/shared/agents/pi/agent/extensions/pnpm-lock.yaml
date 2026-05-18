@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@mariozechner/pi-ai':
+        specifier: ^0.73.1
+        version: 0.73.1(ws@8.20.1)(zod@4.4.3)
       '@mariozechner/pi-coding-agent':
         specifier: 0.73.1
         version: 0.73.1(ws@8.20.1)(zod@4.4.3)
@@ -20,6 +23,9 @@ importers:
       turndown:
         specifier: ^7.2.4
         version: 7.2.4
+      typebox:
+        specifier: ^1.1.38
+        version: 1.1.38
     devDependencies:
       '@types/turndown':
         specifier: ^5.0.6
