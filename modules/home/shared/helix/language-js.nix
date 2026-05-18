@@ -3,6 +3,7 @@ let
   vscode-eslint = "${pkgs.vscode-langservers-extracted}/bin/vscode-eslint-language-server";
 
   typescript = {
+    auto-format = true;
     language-servers = [
       "typescript-language-server"
       "eslint"
