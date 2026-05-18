@@ -4,5 +4,6 @@
     ./links.nix
     ./notify.nix
     ./pi.nix
+    ./opencode.nix
   ];
 }
