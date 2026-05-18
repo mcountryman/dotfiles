@@ -23,9 +23,9 @@
       }
     ]
   },
-  "effortLevel": "medium",
+  "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark",
-  "agentPushNotifEnabled": true,
-  "autoCompactEnabled": false
+  "autoCompactEnabled": false,
+  "agentPushNotifEnabled": true
 }
