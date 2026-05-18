@@ -7,16 +7,38 @@
 import { once } from "node:events";
 import { spawn } from "node:child_process";
 import readline from "node:readline";
-import type {
-  AgentSessionEvent,
-  AgentToolResult,
-  AgentToolUpdateCallback,
-  ExtensionAPI,
-  ExtensionContext,
+import {
+  Component,
+  Container,
+  DefaultTextStyle,
+  Markdown,
+  Spacer,
+  Text,
+} from "@mariozechner/pi-tui";
+import {
+  getMarkdownTheme,
+  keyHint,
+  Theme,
+  ThemeColor,
+  type AgentSessionEvent,
+  type AgentToolResult,
+  type AgentToolUpdateCallback,
+  type ExtensionAPI,
+  type ExtensionContext,
 } from "@mariozechner/pi-coding-agent";
 import Type from "typebox";
+import { AssistantMessageEvent, Usage } from "@mariozechner/pi-ai";
+import { keyText } from "@mariozechner/pi-coding-agent";
+
+const MAX_COLLAPSED_LOG_LINES = 10;
 
 export default function (pi: ExtensionAPI): void {
+  let usage = newUsage();
+
+  interface Details {
+    chunks: AgentChunks;
+  }
+
   pi.registerTool({
     name: "agent",
     label: "Agent",
@@ -25,7 +47,6 @@ export default function (pi: ExtensionAPI): void {
     promptGuidelines: [
       "Use agent to delegate independent tasks to sub-agents.",
       "Use agent when a user asks to spawn a sub-agent or a background agent",
-      "Use the model parameter when the user asks for a specific model",
       "Ensure the prompt paramater contains text to send to the sub-agent",
       "Expect only the response message text from the agent",
       "If the user is asking to delegate commands to a sub-agent ensure" +
@@ -34,98 +55,108 @@ export default function (pi: ExtensionAPI): void {
     ],
     parameters: Type.Object({
       prompt: Type.String({ description: "Agent prompt" }),
-      model: Type.Optional(Type.String({ description: "Model override" })),
     }),
 
     async execute(
       _: string,
-      params: { prompt: string; model: string },
+      params: { prompt: string },
       signal: AbortSignal | undefined,
-      onUpdate: AgentToolUpdateCallback<unknown> | undefined,
-      __: ExtensionContext,
-    ): Promise<AgentToolResult<unknown>> {
+      onUpdate: AgentToolUpdateCallback<Details> | undefined,
+      ctx: ExtensionContext,
+    ): Promise<AgentToolResult<Details>> {
+      const chunks = new AgentChunks();
+
       // Check for cancellation
       if (signal?.aborted) {
         return {
           content: [{ type: "text", text: "Cancelled" }],
-          details: {},
+          details: { chunks },
         };
       }
 
-      const { prompt, model } = params;
+      const { prompt } = params;
       const tools = pi
         .getAllTools()
         .map((it) => it.name)
         .filter((it) => it !== "agent");
 
-      let output = "";
-      let pending = "";
-      let pending_kind = "text" as "text" | "thinking";
+      let text = "";
 
-      function onContentUpdate(kind: "text" | "thinking", text: string) {
-        if (kind !== pending_kind) {
-          if (pending !== "") {
-            pending += "\n\n";
-          }
-
-          pending_kind = kind;
-
-          if (kind === "thinking") {
-            pending += "> ";
-          }
-        }
-
-        if (kind === "text") {
-          output += text;
-        } else if (kind === "thinking") {
-          let first = true;
-
-          for (const line of text.split("\n")) {
-            if (first) pending += line;
-            else pending += `> ${line}`;
-
-            if (first) first = false;
-          }
-        }
-
+      for await (const event of subagent(
+        prompt,
+        ctx.model?.name,
+        tools,
+        signal,
+      )) {
+        chunks.push(event);
         onUpdate?.({
-          details: {},
-          content: [{ type: "text", text: pending }],
+          content: [{ type: "text", text }],
+          details: { chunks },
         });
-      }
 
-      for await (const event of spawnSubAgent(prompt, model, tools, signal)) {
+        // User requests cancellation
+        if (signal?.aborted) break;
+        // Sub-agent died with a non-zero exit code
+        if (event.type === "close" && event.code !== 0)
+          throw new Error(`Non-zero exit code: ${event.code}`);
+        // Sub-agent died successfully
         if (event.type === "close") break;
-
+        // Sub-agent said something important
         if (event.type === "message_update") {
           if (event.assistantMessageEvent.type === "text_delta") {
-            onContentUpdate("text", event.assistantMessageEvent.delta);
-          } else if (event.assistantMessageEvent.type === "thinking_delta") {
-            onContentUpdate("thinking", event.assistantMessageEvent.delta);
+            text += event.assistantMessageEvent.delta;
+          }
+        }
+
+        if (event.type === "message_end") {
+          if (event.message.role === "assistant") {
+            usage = sumUsageCost(usage, event.message.usage);
           }
         }
       }
 
       // Return result
       return {
-        content: [{ type: "text", text: output }], // Sent to LLM
-        details: {},
-        // Optional: stop after this tool batch when every finalized tool result
-        // in the batch also returns terminate: true.
+        content: [{ type: "text", text }],
+        details: { chunks },
         terminate: true,
       };
     },
+
+    renderResult(result, options, theme, _) {
+      if (!options.isPartial) {
+        return new AgentChunksLog(
+          result.details.chunks,
+          theme,
+          options.expanded,
+        );
+      }
+
+      return new AgentChunksLog(result.details.chunks, theme, options.expanded);
+    },
+  });
+
+  pi.on("message_end", (event, _) => {
+    if (event.message.role !== "assistant") {
+      return event;
+    }
+
+    event.message.usage = sumUsageCost(usage, event.message.usage);
+    // reset to avoid double adds
+    usage = newUsage();
+
+    return event;
   });
 }
 
-type SubAgentEvent = AgentSessionEvent | { type: "close"; code: number };
+type AgentEvent = AgentSessionEvent | { type: "close"; code: number };
 
-async function* spawnSubAgent(
+async function* subagent(
   prompt: string,
   model?: string,
   tools: string[] = [],
   signal?: AbortSignal,
-): AsyncGenerator<SubAgentEvent> {
+): AsyncGenerator<AgentEvent> {
   signal?.throwIfAborted();
 
   const argv = [
@@ -150,7 +181,7 @@ async function* spawnSubAgent(
   });
 
   function onAbort() {
-    child.kill();
+    child.kill("SIGKILL");
     lines.close();
   }
 
@@ -158,8 +189,6 @@ async function* spawnSubAgent(
 
   try {
     for await (let line of lines) {
-      signal?.throwIfAborted();
-
       yield JSON.parse(line);
     }
 
@@ -168,9 +197,213 @@ async function* spawnSubAgent(
   } catch (err) {
     if (err.name === "AbortError") {
       yield { type: "close", code: 1 };
+    } else {
+      throw err;
     }
   } finally {
     signal?.removeEventListener("abort", onAbort);
     child.kill();
+    lines.close();
   }
+}
+
+type AgentChunk = [AgentChunkKind, string];
+type AgentChunkKind = "text" | "thinking" | "tool";
+
+class AgentChunks {
+  constructor(private readonly chunks: AgentChunk[] = []) {}
+
+  get(): AgentChunk[] {
+    return this.chunks;
+  }
+
+  push(event: AgentEvent) {
+    function fmt(args: unknown): string {
+      if (args === null) return "";
+      if (args === undefined) return "";
+      if (Array.isArray(args)) {
+        return args.map(fmt).join(", ");
+      }
+
+      if (typeof args === "object") {
+        const entries = Object.entries(args);
+        if (entries.length === 0) return "";
+        if (entries.length === 1) return fmt(entries[0][1]);
+
+        return entries.map(([k, v]) => `${fmt(k)}=${fmt(v)}`).join(", ");
+      }
+
+      return `${args}`;
+    }
+
+    const last = this.chunks.length - 1;
+    let next: [AgentChunkKind, string] | null = null;
+
+    // Identify the chunk type & content
+    if (event.type === "message_update") {
+      if (event.assistantMessageEvent.type === "text_delta") {
+        next = ["text", event.assistantMessageEvent.delta];
+      } else if (event.assistantMessageEvent.type === "thinking_delta") {
+        next = ["thinking", event.assistantMessageEvent.delta];
+      } else if (event.assistantMessageEvent.type === "toolcall_start") {
+        if (event.message.role === "assistant") {
+          for (const chunk of event.message.content) {
+            if (chunk.type === "toolCall") {
+              const name = chunk.name;
+              let args = fmt(chunk.arguments);
+              if (args.length > 20) {
+                args = args.substring(0, 20);
+                args += "...";
+              }
+
+              next = ["tool", `**${name}** ${args}`];
+            }
+          }
+        }
+      }
+    }
+
+    // No chunk found, ignore
+    if (!next) {
+      return;
+    }
+
+    // Update the most recent chunk if it's the same kind
+    if (last >= 0 && next[0] === this.chunks[last][0]) {
+      this.chunks[last][1] += next[1];
+      this.chunks[last][1] = this.chunks[last][1]
+        .replace("\\t", "\t")
+        .replace("\\r", "\r")
+        .replace("\\n", "\n");
+
+      return;
+    }
+
+    // Append the new chunk
+    this.chunks.push(next);
+  }
+}
+
+class AgentChunksLog implements Component {
+  constructor(
+    private readonly chunks: AgentChunks,
+    private readonly theme: Theme,
+    private readonly expanded: boolean,
+  ) {}
+
+  render(width: number): string[] {
+    const theme = this.theme;
+    const container = new Container();
+
+    container.addChild(new Spacer(1));
+
+    for (const chunk of this.chunks.get()) {
+      container.addChild(this._getChunkComponent(chunk));
+    }
+
+    container.addChild(new Spacer(1));
+
+    if (this.expanded) {
+      return container.render(width);
+    }
+
+    const lines: string[] = [];
+
+    for (const chunk of container.render(width)) {
+      for (const line of chunk.split("\n")) {
+        lines.push(line);
+      }
+    }
+
+    if (lines.length <= MAX_COLLAPSED_LOG_LINES) {
+      return lines;
+    }
+
+    const truncated = lines.splice(-MAX_COLLAPSED_LOG_LINES);
+    const remaining = lines.length - MAX_COLLAPSED_LOG_LINES;
+
+    const expandHintHead = theme.fg("muted", `(${remaining} more lines, `);
+    const expandHintMid = keyHint("app.tools.expand", "to expand");
+    const expandHintTail = theme.fg("muted", `)`);
+    const expandHint = [expandHintHead, expandHintMid, expandHintTail].join("");
+
+    return [
+      "", // padding line
+      ...truncated,
+      "", // padding line
+      expandHint,
+    ];
+  }
+
+  invalidate() {}
+
+  _getChunkComponent([kind, text]: AgentChunk): Component {
+    function getMarkdownTextStyle(
+      theme: Theme,
+      color: ThemeColor,
+    ): DefaultTextStyle {
+      return {
+        color(text) {
+          return theme.fg(color, text);
+        },
+      };
+    }
+
+    const mdTheme = getMarkdownTheme();
+    const mdThinkingStyle = getMarkdownTextStyle(this.theme, "thinkingText");
+    const mdToolStyle: DefaultTextStyle = {
+      color: (text) => this.theme.fg("toolTitle", text),
+      bgColor: (text) => this.theme.bg("toolPendingBg", text),
+    };
+
+    switch (kind) {
+      case "text":
+        return new Markdown(text, 0, 0, mdTheme);
+      case "thinking":
+        return new Markdown(text, 0, 0, mdTheme, mdThinkingStyle);
+      case "tool": {
+        const container = new Container();
+
+        container.addChild(new Spacer(1));
+        container.addChild(new Markdown(text, 1, 1, mdTheme, mdToolStyle));
+        container.addChild(new Spacer(1));
+
+        return container;
+      }
+    }
+  }
+}
+
+function newUsage(): Usage {
+  return {
+    input: 0,
+    output: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    totalTokens: 0,
+    cost: {
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+      total: 0,
+    },
+  };
+}
+
+function sumUsageCost(a: Usage, b: Usage): Usage {
+  return {
+    input: a.input,
+    output: a.output,
+    cacheRead: a.cacheRead,
+    cacheWrite: a.cacheWrite,
+    totalTokens: a.totalTokens,
+    cost: {
+      input: a.cost.input + b.cost.input,
+      output: a.cost.output + b.cost.output,
+      cacheRead: a.cost.cacheRead + b.cost.cacheRead,
+      cacheWrite: a.cost.cacheWrite + b.cost.cacheWrite,
+      total: a.cost.total + b.cost.total,
+    },
+  };
 }
