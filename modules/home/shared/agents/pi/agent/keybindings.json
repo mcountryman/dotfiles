@@ -1,3 +1,7 @@
 {
-  "app.interrupt": ["escape"]
+  "app.interrupt": ["escape"],
+  "app.thinking.cycle": ["alt+t"],
+  "app.model.select": [],
+  "app.model.cycleForward": [],
+  "app.model.cycleBackward": []
 }

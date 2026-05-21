@@ -1,5 +1,5 @@
 ---
-name: grill-with-docs
+name: grill-with
 description: Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates documentation (CONTEXT.md, ADRs) inline as decisions crystallise. Use when user wants to stress-test a plan against their project's language and documented decisions.
 ---
 
@@ -39,8 +39,8 @@ Most repos have a single context:
 └── src/
 ```
 
-If `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The
-map points to where each one lives:
+If `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The map
+points to where each one lives:
 
 ```
 /
@@ -58,8 +58,8 @@ map points to where each one lives:
 ```
 
 Create files lazily — only when you have something to write. If no `CONTEXT.md`
-exists, create one when the first term is resolved. If no `.agents/docs/adr/` exists,
-create it when the first ADR is needed.
+exists, create one when the first term is resolved. If no `.agents/docs/adr/`
+exists, create it when the first ADR is needed.
 
 ## During the session
 

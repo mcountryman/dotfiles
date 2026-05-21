@@ -2,14 +2,18 @@
 
 My dotfiles configuration. Made to be portable, modular, and consumable.
 
-# Run
+## Run
 
 - `fairy` - `sudo darwin-rebuild switch --flake .#`
 
-# Test
+## Test
 
 - `nix fmt` - Verify nix style
 - `nix flake check` - Verify lints pass
+
+## Style
+
+Refer to the [style guide](STYLE.md) when making code changes.
 
 ## Structure
 
@@ -30,7 +34,8 @@ When making modifications:
 
 - _DO_ run `nix flake check`
 - _DO_ run `nix fmt`
-- _DO_ run `biome check` in `modules/home/shared/agents/pi/extensions` when editing extensions
+- _DO_ run `biome check` in `modules/home/shared/agents/pi/extensions` when
+  editing extensions
 
 When committing:
 

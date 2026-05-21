@@ -12,5 +12,6 @@
     "openrouter/moonshotai/kimi-k2.6",
     "openrouter/deepseek/deepseek-v4-pro",
     "ollama/gemma4:latest"
-  ]
+  ],
+  "hideThinkingBlock": false
 }
