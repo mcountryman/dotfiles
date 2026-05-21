@@ -24,29 +24,26 @@ const VARIANT_MAP: Record<string, string> = {
 
 interface FooterCtx {
   ctx: ExtensionContext;
-  footerData: ReadonlyFooterDataProvider;
-  variant: string;
+  data: ReadonlyFooterDataProvider;
   thinkingLevel: string | undefined;
 }
 
 export default function (pi: ExtensionAPI): void {
-  const profile = process.env.PI_NONO_PROFILE || "pi";
-  const variant = VARIANT_MAP[profile] ?? profile;
-
   let thinkingLevel: string | undefined;
 
   pi.on("thinking_level_select", async (event) => {
     thinkingLevel = event.level;
   });
-  pi.on("session_start", async (_event, ctx) => {
-    ctx.ui.setFooter((tui, theme, footerData) => {
-      const unsubBranch = footerData.onBranchChange(() => tui.requestRender());
 
+  pi.on("session_start", async (_event, ctx) => {
+    thinkingLevel = pi.getThinkingLevel();
+
+    ctx.ui.setFooter((tui, theme, footerData) => {
       return {
-        dispose: unsubBranch,
-        invalidate(): void {},
+        dispose: footerData.onBranchChange(() => tui.requestRender()),
+        invalidate() {},
         render(width: number): string[] {
-          const footer: FooterCtx = { ctx, footerData, variant, thinkingLevel };
+          const footer: FooterCtx = { ctx, data: footerData, thinkingLevel };
           const dim = (s: string) => theme.fg("dim", s);
 
           const line1 = joinLine(
@@ -73,19 +70,21 @@ export default function (pi: ExtensionAPI): void {
 }
 
 function renderTopLeft(footer: FooterCtx, _: number, theme: Theme): string {
-  const { ctx, footerData } = footer;
+  const { ctx, data } = footer;
 
   let pwd = ctx.sessionManager.getCwd();
   const home = process.env.HOME || process.env.USERPROFILE;
-  const branch = footerData.getGitBranch();
+  const branch = data.getGitBranch();
   const sessionName = ctx.sessionManager.getSessionName();
 
   if (home && pwd.startsWith(home)) {
     pwd = `~${pwd.slice(home.length)}`;
   }
+
   if (branch) {
     pwd = `${pwd} (${branch})`;
   }
+
   if (sessionName) {
     pwd = `${pwd} • ${sessionName}`;
   }
@@ -94,13 +93,14 @@ function renderTopLeft(footer: FooterCtx, _: number, theme: Theme): string {
 }
 
 function renderTopRight(footer: FooterCtx, _: number, theme: Theme): string {
-  return theme.fg("borderAccent", footer.variant);
+  return "";
 }
 
 function renderBottomLeft({ ctx }: FooterCtx, _: number, theme: Theme): string {
   let totalInput = 0;
   let totalOutput = 0;
   let totalCost = 0;
+
   const usage = ctx.getContextUsage();
   const contextWindow = usage?.contextWindow ?? ctx.model?.contextWindow ?? 0;
   const contextPercentValue = usage?.percent ?? 0;
@@ -113,23 +113,28 @@ function renderBottomLeft({ ctx }: FooterCtx, _: number, theme: Theme): string {
       ? `?/${formatTokens(contextWindow)}${autoIndicator}`
       : `${contextPercent}%/${formatTokens(contextWindow)}${autoIndicator}`;
 
-  for (const e of ctx.sessionManager.getEntries()) {
-    if (e.type === "message" && e.message.role === "assistant") {
-      const m = e.message as AssistantMessage;
-      totalInput += m.usage.input;
-      totalOutput += m.usage.output;
-      totalCost += m.usage.cost.total;
+  for (const entry of ctx.sessionManager.getEntries()) {
+    if (entry.type === "message" && entry.message.role === "assistant") {
+      const message = entry.message as AssistantMessage;
+
+      totalInput += message.usage.input;
+      totalOutput += message.usage.output;
+      totalCost += message.usage.cost.total;
     }
   }
+
   if (totalInput) {
     parts.push(`↑${formatTokens(totalInput)}`);
   }
+
   if (totalOutput) {
     parts.push(`↓${formatTokens(totalOutput)}`);
   }
+
   if (totalCost) {
     parts.push(`$${totalCost.toFixed(3)}`);
   }
+
   if (contextPercentValue > 90) {
     parts.push(theme.fg("error", contextDisplay));
   } else if (contextPercentValue > 70) {
@@ -142,7 +147,7 @@ function renderBottomLeft({ ctx }: FooterCtx, _: number, theme: Theme): string {
 }
 
 function renderBottomRight(footer: FooterCtx, _: number, theme: Theme): string {
-  const { ctx, footerData, thinkingLevel } = footer;
+  const { ctx, data, thinkingLevel } = footer;
   const level = thinkingLevel || "off";
   const modelName = ctx.model?.id || "no-model";
 
@@ -155,7 +160,7 @@ function renderBottomRight(footer: FooterCtx, _: number, theme: Theme): string {
         : `${modelName} • ${level}`;
   }
 
-  if (footerData.getAvailableProviderCount() > 1 && ctx.model) {
+  if (data.getAvailableProviderCount() > 1 && ctx.model) {
     rightSide = `(${ctx.model.provider}) ${rightSide}`;
   }
 
@@ -163,11 +168,11 @@ function renderBottomRight(footer: FooterCtx, _: number, theme: Theme): string {
 }
 
 function renderExtensionLine(
-  { footerData }: FooterCtx,
+  { data }: FooterCtx,
   width: number,
   theme: Theme,
 ): string {
-  const statuses = footerData.getExtensionStatuses();
+  const statuses = data.getExtensionStatuses();
   if (statuses.size === 0) {
     return "";
   }
@@ -191,6 +196,7 @@ function joinLine(
 
   if (leftWidth + 2 + rightWidth <= width) {
     const padding = " ".repeat(width - leftWidth - rightWidth);
+
     return left + padding + right;
   }
 
@@ -201,6 +207,7 @@ function joinLine(
     const padding = " ".repeat(
       Math.max(0, width - leftWidth - truncatedRightWidth),
     );
+
     return left + padding + truncatedRight;
   }
 

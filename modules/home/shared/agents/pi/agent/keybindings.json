@@ -3,5 +3,6 @@
   "app.thinking.cycle": ["alt+t"],
   "app.model.select": [],
   "app.model.cycleForward": [],
-  "app.model.cycleBackward": []
+  "app.model.cycleBackward": [],
+  "app.thinking.toggle": []
 }

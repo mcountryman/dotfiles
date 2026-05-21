@@ -40,14 +40,17 @@ renderTopLeft(footer: FooterCtx, ...)
 renderTopLeft(fctx: FooterCtx, ...)
 ```
 
-Short names when scope is clear.
+Avoid single-letter names and abbreviations even in tight scopes. Use the
+full domain term.
 
 ```ts
-// correct (inside renderBottomLeft)
-const usage = ctx.getContextUsage();
+// correct
+const entry = ...;
+const message = entry.message as AssistantMessage;
 
 // wrong
-const contextUsage = ctx.getContextUsage();
+const e = ...;
+const m = e.message as AssistantMessage;
 ```
 
 Unused parameters use bare `_`, never `_name`.
@@ -75,9 +78,20 @@ function renderBottomLeft(footer: FooterCtx, _: number, theme: Theme): string {
   const { ctx } = footer;
 ```
 
-Hoist all declarations to the top of the function. `const` first, then `let`,
-then logic. Compute dependent values once at the top — don't bury them inside
-conditionals.
+Hoist all declarations to the top of the function. Separate `const` and `let`
+groups with a blank line. Compute dependent values once at the top — don't
+bury them inside conditionals.
+
+Mutable variables should be initialized when declared rather than left
+`undefined`.
+
+```ts
+// correct
+let thinkingLevel: string | undefined = pi.getThinkingLevel();
+
+// wrong
+let thinkingLevel: string | undefined;
+```
 
 ```ts
 // correct
@@ -105,46 +119,84 @@ function renderBottomRight(footer: FooterCtx, _: number, theme: Theme): string {
 
 ### Blank lines
 
-Only between _phases_: **get → modify → return**. Never within a phase.
+Blank lines separate groups of statements of the same kind. A curly-brace
+block (`if`, `for`, etc.) always gets a blank line after its closing brace.
 
-```ts
-// correct — 3 phases, 2 blank lines
-function renderTopLeft(footer: FooterCtx, _: number, theme: Theme): string {
-  const { ctx, footerData } = footer;
-  let pwd = ctx.sessionManager.getCwd();
-  const home = process.env.HOME || process.env.USERPROFILE;
-  const branch = footerData.getGitBranch();
-  const sessionName = ctx.sessionManager.getSessionName();
-
-  if (home && pwd.startsWith(home)) {
-    pwd = `~${pwd.slice(home.length)}`;
-  }
-  if (branch) {
-    pwd = `${pwd} (${branch})`;
-  }
-  if (sessionName) {
-    pwd = `${pwd} • ${sessionName}`;
-  }
-
-  return theme.fg("dim", pwd);
-}
-```
-
-```ts
-// wrong — blank lines between individual declarations (same phase)
-  let pwd = ...;
-  const home = ...;
-
-  const branch = ...;
-
-  const sessionName = ...;
-```
-
-Guard clauses (early returns) are their own phase.
+**Declaration groups** are separated:
 
 ```ts
 // correct
-  const statuses = footer.footerData.getExtensionStatuses();
+function renderBottomLeft(...): string {
+  let totalInput = 0;
+  let totalOutput = 0;
+
+  const usage = ctx.getContextUsage();
+  const parts: string[] = [];
+
+  for (...) { ... }
+
+  if (...) { ... }
+
+  return ...;
+}
+```
+
+**Independent conditional blocks** are separated:
+
+```ts
+// correct
+  if (totalInput) {
+    parts.push(`↑${formatTokens(totalInput)}`);
+  }
+
+  if (totalOutput) {
+    parts.push(`↓${formatTokens(totalOutput)}`);
+  }
+
+  if (totalCost) {
+    parts.push(`$${totalCost.toFixed(3)}`);
+  }
+```
+
+```ts
+// wrong — independent conditionals jammed together
+  if (totalInput) {
+    parts.push(`↑${formatTokens(totalInput)}`);
+  }
+  if (totalOutput) {
+    parts.push(`↓${formatTokens(totalOutput)}`);
+  }
+```
+
+**Independent side-effect registrations** are separated:
+
+```ts
+// correct
+  pi.on("thinking_level_select", async (event) => {
+    thinkingLevel = event.level;
+  });
+
+  pi.on("session_start", async (_event, ctx) => {
+    ...
+  });
+```
+
+**Compute-then-return within a block** is separated:
+
+```ts
+// correct
+  if (leftWidth + 2 + rightWidth <= width) {
+    const padding = " ".repeat(width - leftWidth - rightWidth);
+
+    return left + padding + right;
+  }
+```
+
+**Guard clauses** (early returns) are followed by a blank line:
+
+```ts
+// correct
+  const statuses = footerData.getExtensionStatuses();
   if (statuses.size === 0) {
     return "";
   }
@@ -153,25 +205,10 @@ Guard clauses (early returns) are their own phase.
 ```
 
 ```ts
-// wrong — guard separated from its return
-const statuses = footer.footerData.getExtensionStatuses();
+// wrong — blank line between guard declaration and its return
+const statuses = footerData.getExtensionStatuses();
 
 if (statuses.size === 0) {
   return "";
 }
-```
-
-Multiple `if` blocks that mutate the same variable are one phase (no blanks
-between them).
-
-```ts
-// correct
-  if (ctx.model?.reasoning) {
-    rightSide = ...;
-  }
-  if (footerData.getAvailableProviderCount() > 1 && ctx.model) {
-    rightSide = ...;
-  }
-
-  return theme.fg("dim", rightSide);
 ```
