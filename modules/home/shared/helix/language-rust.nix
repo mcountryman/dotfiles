@@ -19,6 +19,7 @@
 
     home.packages = with pkgs; [
       clippy
+      rust-analyzer
     ];
 
     language-server.rust-analyzer = {
@@ -27,7 +28,10 @@
       config = {
         check.command = "clippy";
 
+        hover.memoryLayout.enable = true;
+
         inlayHints = {
+
           bindingModeHints.enable = false;
           closingBraceHints.minLines = 10;
           closureReturnTypeHints.enable = "with_block";

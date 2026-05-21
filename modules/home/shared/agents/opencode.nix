@@ -40,6 +40,17 @@ in
                 "tools": true
               }
             }
+          },
+          "openrouter": {
+            "models": {
+              "z-ai/glm-5.1": {
+                "variants": {
+                  "high": { "reasoningEffort": "high" },
+                  "medium": { "reasoningEffort": "medium" },
+                  "low": { "reasoningEffort": "low" }
+                }
+              }
+            }
           }
         }
       }

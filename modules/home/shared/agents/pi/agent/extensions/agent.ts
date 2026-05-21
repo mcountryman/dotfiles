@@ -250,11 +250,7 @@ class AgentChunks {
           for (const chunk of event.message.content) {
             if (chunk.type === "toolCall") {
               const name = chunk.name;
-              let args = fmt(chunk.arguments);
-              if (args.length > 20) {
-                args = args.substring(0, 20);
-                args += "...";
-              }
+              const args = fmt(chunk.arguments);
 
               next = ["tool", `**${name}** ${args}`];
             }

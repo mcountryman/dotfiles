@@ -30,6 +30,7 @@ in
       (mkPiBin "pi" [
         "--allow $PWD"
         "--read /nix/store"
+        "--allow ~/.cargo"
         "--allow ~/.cache/nix"
         # "--allow /nix/var/nix/daemon-socket" # Linux
         # "--allow /var/run/nix-daemon.socket" # Darwin
