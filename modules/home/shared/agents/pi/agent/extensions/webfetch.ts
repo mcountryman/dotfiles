@@ -1,336 +1,168 @@
 /**
  * webfetch - fetch web pages as clean markdown
  *
- * Uses Jina Reader (free, JS rendering) with local turndown fallback.
- * Disk-caches up to 100MB with LRU eviction.
+ * Uses Jina Reader API (free tier, JS rendering) via eu-r-beta.jina.ai.
+ * In-memory cache up to 100MB with LRU eviction (1h TTL, max 100MB).
  *
  * Supports segmented reading:
- * - Results are truncated when sent to the model (default: 200 lines).
- * - The model can request a different segment via offset/limit.
+ * - Results are truncated to 20KB by default (MAX_BYTES) when sent to the model.
+ * - The model can request a different segment via skip/take parameters.
  * - Segments of previously fetched pages are served from cache.
- * - User-facing output is collapsed to 10 lines; expand to see the full segment.
  */
 
-import { createHash } from "node:crypto";
-import {
-	mkdir,
-	readdir,
-	readFile,
-	stat,
-	unlink,
-	utimes,
-	writeFile,
-} from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-
+import { LRUCache } from "lru-cache";
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import {
-	DEFAULT_MAX_BYTES,
-	DEFAULT_MAX_LINES,
-	formatSize,
-	keyHint,
-	truncateHead,
-} from "@mariozechner/pi-coding-agent";
-import { Text } from "@mariozechner/pi-tui";
-import TurndownService from "turndown";
+import { formatSize } from "@mariozechner/pi-coding-agent";
+import { Text, Component } from "@mariozechner/pi-tui";
 import { Type } from "typebox";
 
-// ── Turndown ────────────────────────────────────────────────────────────────
+const JINA_URL = "https://eu-r-beta.jina.ai/";
+// const JINA_TOKEN = null as string | null;
 
-const td = new TurndownService({
-	headingStyle: "atx",
-	codeBlockStyle: "fenced",
+const MAX_BYTES = 1024 * 20; // 20KB;
+
+const cache = new LRUCache<string, ResultOk>({
+  ttl: 1000 * 60 * 60, // 1h
+  maxSize: 1024 * 1024 * 100, // 100MB
+
+  sizeCalculation(result) {
+    return Buffer.byteLength(result.markdown, "utf8");
+  },
 });
 
-// ── Constants ────────────────────────────────────────────────────────────────
-
-const PRIVATE_HOST_RE =
-	/^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|169\.254\.|localhost$|\[?::1\]?)/iu;
-
-const CACHE_DIR = join(tmpdir(), "pi-webfetch");
-const MAX_CACHE = 100 * 1024 * 1024;
-
-/** Default segment size shown to the model on first fetch. */
-const DEFAULT_OFFSET = 1;
-const DEFAULT_LIMIT = 200;
-
-/** Lines shown in the collapsed TUI view. */
-const COLLAPSED_LINES = 10;
-
-// ── URL helpers ──────────────────────────────────────────────────────────────
-
-function normalizeUrl(raw: string): string {
-	let url = raw.replace(/^@/u, "");
-	if (!/^https?:\/\//iu.test(url)) {
-		url = `https://${url}`;
-	}
-	if (PRIVATE_HOST_RE.test(new URL(url).hostname)) {
-		throw new Error(`Private/internal URLs not allowed: ${url}`);
-	}
-	return url;
-}
-
-// ── Fetch backends ───────────────────────────────────────────────────────────
-
-async function jina(url: string, signal?: AbortSignal): Promise<string | null> {
-	const r = await fetch(`https://r.jina.ai/${url}`, {
-		headers: { Accept: "text/markdown" },
-		signal,
-	});
-	return r.ok ? r.text() : null;
-}
-
-async function local(url: string, signal?: AbortSignal): Promise<string> {
-	const r = await fetch(url, { signal });
-	if (!r.ok) {
-		throw new Error(`HTTP ${r.status}: ${r.statusText}`);
-	}
-	return td.turndown(await r.text());
-}
-
-// ── Disk cache ───────────────────────────────────────────────────────────────
-
-function cachePath(url: string): string {
-	const hash = createHash("sha256").update(url).digest("hex");
-	return join(CACHE_DIR, `${hash}.md`);
-}
-
-async function cacheRead(url: string): Promise<string | undefined> {
-	try {
-		const p = cachePath(url);
-		const content = await readFile(p, "utf8");
-		await utimes(p, new Date(), new Date());
-		return content;
-	} catch {
-		return undefined;
-	}
-}
-
-/** Cache the **full** page content (not a truncated slice). */
-async function cacheWrite(url: string, content: string): Promise<void> {
-	await mkdir(CACHE_DIR, { recursive: true });
-	await writeFile(cachePath(url), content, "utf8");
-	await evict();
-}
-
-async function evict(): Promise<void> {
-	const entries: { path: string; mtime: number; size: number }[] = [];
-
-	for (const name of await readdir(CACHE_DIR).catch((): string[] => [])) {
-		if (!name.endsWith(".md")) {
-			continue;
-		}
-		const p = join(CACHE_DIR, name);
-		const s = await stat(p);
-		entries.push({ path: p, mtime: s.mtimeMs, size: s.size });
-	}
-
-	entries.sort((a, b) => a.mtime - b.mtime);
-	let total = entries.reduce((sum, e) => sum + e.size, 0);
-
-	for (const e of entries) {
-		if (total <= MAX_CACHE) {
-			break;
-		}
-		await unlink(e.path).catch(() => {});
-		total -= e.size;
-	}
-}
-
-// ── Details type ────────────────────────────────────────────────────────────
-
-interface WebFetchDetails {
-	url: string;
-	offset: number;
-	segmentLines: number;
-	totalLines: number;
-	fromCache: boolean;
-	/** Full segment text for TUI rendering (not sent to model). */
-	content: string;
-}
-
-// ── Extension ───────────────────────────────────────────────────────────────
-
 export default function (pi: ExtensionAPI): void {
-	pi.registerTool({
-		name: "webfetch",
-		label: "Web Fetch",
-		description:
-			"Fetch a web page and convert it to clean markdown. " +
-			"Handles JS-rendered pages via Jina Reader. " +
-			"Results are truncated to a segment (default: 200 lines); " +
-			"use offset and limit to read different segments. " +
-			"Previously fetched pages are cached, so re-reading a segment " +
-			"does not re-fetch the page.",
-		promptSnippet: "Fetch web pages as markdown, with segmented reading",
-		promptGuidelines: [
-			"Use webfetch when you need to read a web page's content.",
-			"If webfetch output shows it is a partial view, call webfetch again with a higher offset to read the next segment.",
-			"For a previously fetched URL, use offset/limit to read different segments without re-fetching.",
-		],
-		parameters: Type.Object({
-			url: Type.String({ description: "URL to fetch" }),
-			offset: Type.Optional(
-				Type.Number({
-					description:
-						"1-based line offset for the segment to return (default: 1)",
-				}),
-			),
-			limit: Type.Optional(
-				Type.Number({
-					description: `Maximum lines in the returned segment (default: ${DEFAULT_LIMIT})`,
-				}),
-			),
-		}),
+  pi.registerTool({
+    name: "webfetch",
+    label: "Web Fetch",
+    description: "Fetch a web page and convert it to clean markdown",
+    promptSnippet: "Fetch web pages as markdown, with segmented reading",
+    promptGuidelines: [
+      "Pages are large — start with default skip/take to preview, then refine",
+      "Use skip to jump past content you've already seen; use take to limit what's returned",
+      "Same URL re-fetched = served from cache (no re-download, no extra cost)",
+      `The maximum value for the take parameter is ${MAX_BYTES}`,
+      `Scan incrementally: skip=0 → skip=${MAX_BYTES} → skip=${MAX_BYTES * 2} to walk through long pages`,
+    ],
+    parameters: Type.Object({
+      url: Type.String({ description: "URL to fetch" }),
+      skip: Type.Optional(
+        Type.Number({
+          default: 0,
+          minimum: 0,
+          description: "The number of bytes to skip in the fetched result",
+        }),
+      ),
+      take: Type.Optional(
+        Type.Number({
+          default: MAX_BYTES,
+          maximum: MAX_BYTES,
+          description: `The number of bytes to return from the fetched result`,
+        }),
+      ),
+    }),
 
-		async execute(_id, params, signal, onUpdate) {
-			const url = normalizeUrl(params.url);
-			const offset = params.offset ?? DEFAULT_OFFSET;
-			const limit = params.limit ?? DEFAULT_LIMIT;
+    async execute(_, { url, skip, take }, signal) {
+      skip = Math.max(skip ?? 0);
+      take = Math.min(take ?? MAX_BYTES, MAX_BYTES);
 
-			// ── Resolve full page content (cache → jina → local) ──────────
+      const result = await getMarkdownCached(url, signal);
+      if (!result.ok) {
+        throw new Error(`Failed (${result.status})`);
+      }
 
-			let fullContent = await cacheRead(url);
-			let fromCache = true;
+      const text = getAgentContent(result.markdown, skip, take);
 
-			if (!fullContent) {
-				fromCache = false;
+      return {
+        content: [{ type: "text", text }],
+        details: { result },
+      };
+    },
 
-				const signals = [AbortSignal.timeout(30_000)];
-				if (signal) {
-					signals.push(signal);
-				}
-				const sig = AbortSignal.any(signals);
+    renderCall({ url, skip, take }, theme, _context) {
+      const range =
+        (skip && ` [${skip}..${skip + (take ?? MAX_BYTES)}]`) ||
+        (take && ` [..${take}]`) ||
+        "";
 
-				onUpdate?.({
-					content: [{ type: "text", text: `Fetching ${url}...` }],
-					details: {},
-				});
+      const title = theme.fg("toolTitle", theme.bold("webfetch"));
+      if (!url) {
+        return new Text(title, 0, 0);
+      }
 
-				let md = await jina(url, sig);
-				if (!md) {
-					md = await local(url, sig);
-				}
+      const rangeArg = theme.fg("muted", range);
+      const urlArg = theme.fg("accent", url);
 
-				// Cache the FULL content so future segment requests hit cache.
-				await cacheWrite(url, md);
-				fullContent = md;
-			}
+      return new Text(`${title} ${urlArg}${rangeArg}`, 0, 0);
+    },
 
-			// ── Extract requested segment ──────────────────────────────────
+    renderResult({ details }, _, theme, __): Component {
+      const { status, markdown, cached } = details.result;
+      const size = formatSize(Buffer.byteLength(markdown, "utf8"));
+      const suffix = cached ? theme.fg("muted", "cached") : "";
 
-			const allLines = fullContent.split("\n");
-			const totalLines = allLines.length;
+      return new Text(
+        theme.fg("toolOutput", `Received ${size} (${status}) ${suffix}`),
+        1,
+        0,
+      );
+    },
+  });
+}
 
-			const startLine = Math.max(1, offset);
-			if (startLine > totalLines) {
-				throw new Error(
-					`Offset ${startLine} is beyond end of page (${totalLines} lines total)`,
-				);
-			}
-			const endLine = Math.min(totalLines, startLine + limit - 1);
-			const segmentLines = allLines.slice(startLine - 1, endLine);
-			const segmentContent = segmentLines.join("\n");
+type Result = ResultOk | ResultErr;
+type ResultOk = { ok: true; status: string; markdown: string; cached: boolean };
+type ResultErr = { ok: false; status: string };
 
-			// ── Truncate segment if it still exceeds hard limits ───────────
+async function getMarkdownCached(url: string, signal?: AbortSignal) {
+  const entry = cache.get(url);
+  if (entry) {
+    return entry;
+  }
 
-			const truncation = truncateHead(segmentContent, {
-				maxLines: DEFAULT_MAX_LINES,
-				maxBytes: DEFAULT_MAX_BYTES,
-			});
+  try {
+    const result = await getMarkdown(url, signal);
+    if (result.ok) {
+      cache.set(url, { ...result, cached: true });
+    }
 
-			let text = "";
+    return result;
+  } catch (err) {
+    return { ok: false, status: err.message } as ResultErr;
+  }
+}
 
-			// Prepend segment header so model knows the viewport.
-			if (startLine > 1 || endLine < totalLines) {
-				text += `[Showing lines ${startLine}-${endLine} of ${totalLines}]\n\n`;
-			}
+async function getMarkdown(url: string, signal?: AbortSignal): Promise<Result> {
+  const res = await fetch(`${JINA_URL}/${url}`, {
+    signal,
+    headers: {
+      // Authorization: "Bearer ..",
+      "X-Robots-Txt": "JinaReader", // Don't be mean
+      "X-Return-Format": "markdown",
+      // "X-Retain-Images": "none",
+      // "X-With-Iframe": "true",
+      "X-Cache-Tolerance": "300", // Allow 5m of cache
+    },
+  });
 
-			text += truncation.content;
+  const status = `${res.status} ${res.statusText}`;
 
-			// Append navigation hints.
-			if (truncation.truncated) {
-				text += `\n\n[Segment truncated at ${truncation.outputLines} lines (${formatSize(truncation.outputBytes)}).]`;
-			}
+  if (!res.ok) {
+    return { ok: false, status };
+  }
 
-			if (endLine < totalLines) {
-				text += `\n\n[${totalLines - endLine} more lines below. Call webfetch with url="${url}" offset=${endLine + 1} to continue reading.]`;
-			}
+  const markdown = await res.text();
 
-			if (startLine > 1) {
-				text += `\n\n[${startLine - 1} lines above the shown segment. Call webfetch with url="${url}" offset=1 to read from the beginning.]`;
-			}
+  return { ok: true, status, markdown, cached: false };
+}
 
-			if (fromCache) {
-				text += `\n\n[Served from cache. Page fetched previously.]`;
-			}
+function getAgentContent(markdown: string, skip: number, take: number) {
+  const text = markdown.substring(skip, skip + take);
 
-			return {
-				content: [{ type: "text", text }],
-				details: {
-					url,
-					offset: startLine,
-					segmentLines: segmentLines.length,
-					totalLines,
-					fromCache,
-					content: segmentContent,
-				} as WebFetchDetails,
-			};
-		},
+  const remaining = markdown.length - text.length;
+  const skipNext = skip + text.length;
 
-		// ── TUI rendering ────────────────────────────────────────────────
-
-		renderCall(args, theme, _context) {
-			let text = theme.fg("toolTitle", theme.bold("webfetch "));
-			text += theme.fg("accent", args.url);
-			if (args.offset && args.offset > 1) {
-				text += theme.fg("muted", ` line ${args.offset}`);
-			}
-			if (args.limit && args.limit !== DEFAULT_LIMIT) {
-				text += theme.fg("dim", ` limit=${args.limit}`);
-			}
-			return new Text(text, 0, 0);
-		},
-
-		renderResult(result, { expanded }, theme, _context) {
-			const details = result.details as WebFetchDetails | undefined;
-			if (!details) {
-				const [first] = result.content;
-				return new Text(first?.type === "text" ? first.text : "", 0, 0);
-			}
-
-			// ── Header line ───────────────────────────────────────────
-			let header = theme.fg("success", "✓ ");
-			if (details.fromCache) {
-				header += theme.fg("dim", "(cached) ");
-			}
-			header += theme.fg("muted", details.url);
-			if (details.totalLines > details.segmentLines) {
-				header += theme.fg(
-					"dim",
-					` — lines ${details.offset}-${details.offset + details.segmentLines - 1} of ${details.totalLines}`,
-				);
-			} else if (details.segmentLines === details.totalLines) {
-				header += theme.fg("dim", ` — ${details.totalLines} lines`);
-			}
-
-			// ── Content lines ─────────────────────────────────────────
-			const contentLines = details.content.split("\n");
-			const displayLines = expanded
-				? contentLines
-				: contentLines.slice(0, COLLAPSED_LINES);
-
-			let text = header;
-			for (const line of displayLines) {
-				text += `\n${theme.fg("dim", line)}`;
-			}
-
-			if (!expanded && contentLines.length > COLLAPSED_LINES) {
-				text += `\n${theme.fg("muted", `... ${contentLines.length - COLLAPSED_LINES} more lines (${keyHint("app.tools.expand", "expand")})`)}`;
-			}
-
-			return new Text(text, 0, 0);
-		},
-	});
+  return [
+    text,
+    `--- ${remaining} bytes remaining · skip=${skipNext} to continue ---`,
+  ].join("\n");
 }
