@@ -4,402 +4,346 @@
  * Delegates tasks to child pi processes running in json mode.
  */
 
-import { once } from "node:events";
 import { spawn } from "node:child_process";
-import readline from "node:readline";
-import {
-  Component,
-  Container,
-  DefaultTextStyle,
-  Markdown,
-  Spacer,
-  Text,
-} from "@mariozechner/pi-tui";
-import {
-  getMarkdownTheme,
-  keyHint,
-  Theme,
-  ThemeColor,
-  type AgentSessionEvent,
-  type AgentToolResult,
-  type AgentToolUpdateCallback,
-  type ExtensionAPI,
-  type ExtensionContext,
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import readline from "node:readline/promises";
+import type {
+	TextContent,
+	ThinkingContent,
+	ToolCall,
+} from "@mariozechner/pi-ai";
+import type {
+	AgentToolResult,
+	ExtensionAPI,
+	Theme,
 } from "@mariozechner/pi-coding-agent";
-import Type from "typebox";
-import { AssistantMessageEvent, Usage } from "@mariozechner/pi-ai";
-import { keyText } from "@mariozechner/pi-coding-agent";
+import {
+	type AgentSessionEvent,
+	getAgentDir,
+	parseFrontmatter,
+	truncateToVisualLines,
+} from "@mariozechner/pi-coding-agent";
+import { type Component, Text } from "@mariozechner/pi-tui";
+import { Type } from "typebox";
 
-const MAX_COLLAPSED_LOG_LINES = 10;
+export default async function (pi: ExtensionAPI) {
+	const dir = path.join(getAgentDir(), "agents");
+	const agents = await getAgentConfs(dir);
 
-export default function (pi: ExtensionAPI): void {
-  let usage = newUsage();
+	pi.registerTool({
+		name: "agent",
+		label: "Agent",
+		description: "Spawn a sub-agent.",
+		promptSnippet: "Spawn a sub-agent with a prompt and wait for it's output",
+		promptGuidelines: [
+			"A tool to spawn a sub-agent in pi to avoid using up too much context",
+			...agents
+				.filter(agent => agent.promptGuideline)
+				.map(agent => String(agent.promptGuideline)),
+		],
+		parameters: Type.Object({
+			prompt: Type.String({ description: "Agent prompt" }),
+			agent: Type.Optional(
+				Type.String({
+					default: "default",
+					description: "The name of the agent to run",
+				}),
+			),
+		}),
 
-  interface Details {
-    chunks: AgentChunks;
-  }
+		async execute(
+			_toolCallId,
+			{ prompt, agent = "default" },
+			signal,
+			onUpdate,
+			_ctx,
+		): Promise<AgentToolResult<Details>> {
+			const conf = agents.find(candidate => candidate.name === agent);
+			if (!conf) {
+				throw new Error(`Agent with the name '${agent}' doesn't exist`);
+			}
 
-  pi.registerTool({
-    name: "agent",
-    label: "Agent",
-    description: "Spawn a sub-agent.",
-    promptSnippet: "Spawn a sub-agent with a prompt and wait for it's output",
-    promptGuidelines: [
-      "Use agent to delegate independent tasks to sub-agents.",
-      "Use agent when a user asks to spawn a sub-agent or a background agent",
-      "Ensure the prompt paramater contains text to send to the sub-agent",
-      "Expect only the response message text from the agent",
-      "If the user is asking to delegate commands to a sub-agent ensure" +
-        " avoid performing analysis work prior to spawning the sub-agent" +
-        " unless specifically requested",
-    ],
-    parameters: Type.Object({
-      prompt: Type.String({ description: "Agent prompt" }),
-    }),
+			let calls: Call[] = [];
+			let text = "";
+			let thinking = "";
+			let events: AgentSessionEvent[] = [];
 
-    async execute(
-      _: string,
-      params: { prompt: string },
-      signal: AbortSignal | undefined,
-      onUpdate: AgentToolUpdateCallback<Details> | undefined,
-      ctx: ExtensionContext,
-    ): Promise<AgentToolResult<Details>> {
-      const chunks = new AgentChunks();
+			for await (const event of run(prompt, conf, signal)) {
+				if (event.type === "close") {
+					break;
+				}
 
-      // Check for cancellation
-      if (signal?.aborted) {
-        return {
-          content: [{ type: "text", text: "Cancelled" }],
-          details: { chunks },
-        };
-      }
+				if (event.type === "message_update") {
+					if (event.assistantMessageEvent.type === "thinking_start") {
+						thinking = "";
+					}
 
-      const { prompt } = params;
-      const tools = pi
-        .getAllTools()
-        .map((it) => it.name)
-        .filter((it) => it !== "agent");
+					if (event.assistantMessageEvent.type === "thinking_delta") {
+						thinking += event.assistantMessageEvent.delta;
+					}
+				}
 
-      let text = "";
+				if (event.type === "message_end") {
+					if (event.message.role === "assistant") {
+						text += getTextContent(event.message.content);
+					}
+				}
 
-      for await (const event of subagent(
-        prompt,
-        ctx.model?.name,
-        tools,
-        signal,
-      )) {
-        chunks.push(event);
-        onUpdate?.({
-          content: [{ type: "text", text }],
-          details: { chunks },
-        });
+				events.push(event);
+				calls.push(...getToolCalls(events));
 
-        // User requests cancellation
-        if (signal?.aborted) break;
-        // Sub-agent died with a non-zero exit code
-        if (event.type === "close" && event.code !== 0)
-          throw new Error(`Non-zero exit code: ${event.code}`);
-        // Sub-agent died successfully
-        if (event.type === "close") break;
-        // Sub-agent said something important
-        if (event.type === "message_update") {
-          if (event.assistantMessageEvent.type === "text_delta") {
-            text += event.assistantMessageEvent.delta;
-          }
-        }
+				// Event stream hammers memory if we don't limit it.  Maybe an object
+				// pool would make sense here.  GC takes a while to recover.
+				events = events.slice(-128);
+				calls = calls.slice(-50);
 
-        if (event.type === "message_end") {
-          if (event.message.role === "assistant") {
-            usage = sumUsageCost(usage, event.message.usage);
-          }
-        }
-      }
+				onUpdate?.({
+					content: [],
+					details: { calls, text, thinking },
+				});
+			}
 
-      // Return result
-      return {
-        content: [{ type: "text", text }],
-        details: { chunks },
-        terminate: true,
-      };
-    },
+			return {
+				content: [{ type: "text", text }],
+				details: { calls, text, thinking },
+			};
+		},
 
-    renderResult(result, options, theme, _) {
-      if (!options.isPartial) {
-        return new AgentChunksLog(
-          result.details.chunks,
-          theme,
-          options.expanded,
-        );
-      }
+		renderCall({ agent: agentName }, theme, _) {
+			const conf = agents.find(entry => entry.name === agentName) ?? agents[0];
 
-      return new AgentChunksLog(result.details.chunks, theme, options.expanded);
-    },
-  });
+			const title = theme.fg("toolTitle", theme.bold("agent"));
+			const label =
+				conf.name !== "default" ? theme.fg("muted", `(${conf.name})`) : "";
 
-  pi.on("message_end", (event, _) => {
-    if (event.message.role !== "assistant") {
-      return event;
-    }
+			return new Text(`${title} ${label}`, 0, 0);
+		},
 
-    event.message.usage = sumUsageCost(usage, event.message.usage);
-    // reset to avoid double adds
-    usage = newUsage();
+		renderResult({ details }, _options, theme, ctx) {
+			if (ctx.isError) {
+				throw new Error();
+			}
 
-    return event;
-  });
+			return {
+				invalidate() {},
+				render(width) {
+					const lines: string[] = [];
+
+					const calls = formatCompactToolCalls(details.calls, theme);
+					const callsTrunc = truncateToVisualLines(calls.join("\n"), 10, width);
+					const callLines = callsTrunc.visualLines;
+
+					lines.push(...callLines);
+
+					const label = details.thinking.trim() || details.text.trim() || "";
+					const labelTrunc = truncateToVisualLines(label, 3, width);
+					const labelLines = labelTrunc.visualLines.map(line =>
+						theme.fg("thinkingText", line),
+					);
+
+					lines.push(...labelLines);
+
+					return lines;
+				},
+			} as Component;
+		},
+	});
 }
 
-type AgentEvent = AgentSessionEvent | { type: "close"; code: number };
-
-async function* subagent(
-  prompt: string,
-  model?: string,
-  tools: string[] = [],
-  signal?: AbortSignal,
-): AsyncGenerator<AgentEvent> {
-  signal?.throwIfAborted();
-
-  const argv = [
-    // output json
-    ...["--mode", "json"],
-    // non-interactive
-    "--print",
-    // don't record history
-    "--no-session",
-
-    ...(model ? ["--model", model] : []),
-    ...(tools.length > 0 ? ["--tools", tools.join(",")] : []),
-
-    prompt,
-  ];
-
-  const child = spawn("pi-raw", argv, { stdio: ["ignore", "pipe", "inherit"] });
-  const lines = readline.createInterface({
-    input: child.stdout,
-    terminal: false,
-    crlfDelay: Infinity,
-  });
-
-  function onAbort() {
-    child.kill("SIGKILL");
-    lines.close();
-  }
-
-  signal?.addEventListener("abort", onAbort);
-
-  try {
-    for await (let line of lines) {
-      yield JSON.parse(line);
-    }
-
-    const [code] = await once(child, "close");
-    yield { type: "close", code: code ?? 0 };
-  } catch (err) {
-    if (err.name === "AbortError") {
-      yield { type: "close", code: 1 };
-    } else {
-      throw err;
-    }
-  } finally {
-    signal?.removeEventListener("abort", onAbort);
-    child.kill();
-    lines.close();
-  }
+interface Details {
+	text: string;
+	calls: Call[];
+	thinking: string;
 }
 
-type AgentChunk = [AgentChunkKind, string];
-type AgentChunkKind = "text" | "thinking" | "tool";
+async function* run(prompt: string, conf: Conf, signal?: AbortSignal) {
+	const argv = [
+		// output json
+		...["--mode", "json"],
+		// non-interactive
+		"--print",
+		// don't record history
+		"--no-session",
 
-class AgentChunks {
-  constructor(private readonly chunks: AgentChunk[] = []) {}
+		...(conf.model ? ["--model", conf.model] : []),
+		...(conf.tools ? ["--tools", conf.tools.join(",")] : []),
+		...(conf.prompt ? ["--append-system-prompt", conf.prompt] : []),
 
-  get(): AgentChunk[] {
-    return this.chunks;
-  }
+		prompt,
+	];
 
-  push(event: AgentEvent) {
-    function fmt(args: unknown): string {
-      if (args === null) return "";
-      if (args === undefined) return "";
-      if (Array.isArray(args)) {
-        return args.map(fmt).join(", ");
-      }
+	const child = spawn("pi-raw", argv, { stdio: ["ignore", "pipe", "pipe"] });
+	const lines = readline.createInterface({
+		signal,
+		input: child.stdout,
+		terminal: false,
+		crlfDelay: Infinity,
+	});
 
-      if (typeof args === "object") {
-        const entries = Object.entries(args);
-        if (entries.length === 0) return "";
-        if (entries.length === 1) return fmt(entries[0][1]);
+	let stderr = "";
 
-        return entries.map(([k, v]) => `${fmt(k)}=${fmt(v)}`).join(", ");
-      }
+	child.stderr?.setEncoding("utf8");
+	child.stderr?.on("data", chunk => (stderr += chunk));
 
-      return `${args}`;
-    }
+	function onAbort() {
+		child.kill("SIGKILL");
+		lines.close();
+	}
 
-    const last = this.chunks.length - 1;
-    let next: [AgentChunkKind, string] | null = null;
+	signal?.addEventListener("abort", onAbort);
 
-    // Identify the chunk type & content
-    if (event.type === "message_update") {
-      if (event.assistantMessageEvent.type === "text_delta") {
-        next = ["text", event.assistantMessageEvent.delta];
-      } else if (event.assistantMessageEvent.type === "thinking_delta") {
-        next = ["thinking", event.assistantMessageEvent.delta];
-      } else if (event.assistantMessageEvent.type === "toolcall_start") {
-        if (event.message.role === "assistant") {
-          for (const chunk of event.message.content) {
-            if (chunk.type === "toolCall") {
-              const name = chunk.name;
-              const args = fmt(chunk.arguments);
+	try {
+		for await (const line of lines) {
+			yield JSON.parse(line) as AgentSessionEvent;
+		}
 
-              next = ["tool", `**${name}** ${args}`];
-            }
-          }
-        }
-      }
-    }
+		const code = await new Promise<number | null>(resolve => {
+			child.once("exit", exitCode => resolve(exitCode));
+			child.once("close", exitCode => resolve(exitCode));
+		});
 
-    // No chunk found, ignore
-    if (!next) {
-      return;
-    }
+		if (code !== 0 && typeof code === "number") {
+			throw new Error(stderr.trim() || `Exit code ${code}`);
+		} else if (code === null) {
+			throw new Error("Cancelled");
+		}
 
-    // Update the most recent chunk if it's the same kind
-    if (last >= 0 && next[0] === this.chunks[last][0]) {
-      this.chunks[last][1] += next[1];
-      this.chunks[last][1] = this.chunks[last][1]
-        .replace("\\t", "\t")
-        .replace("\\r", "\r")
-        .replace("\\n", "\n");
-
-      return;
-    }
-
-    // Append the new chunk
-    this.chunks.push(next);
-  }
+		yield { type: "close" } as const;
+	} catch (err) {
+		throw new Error(`Failed (${err})`);
+	} finally {
+		signal?.removeEventListener("abort", onAbort);
+		child.kill();
+		lines.close();
+	}
 }
 
-class AgentChunksLog implements Component {
-  constructor(
-    private readonly chunks: AgentChunks,
-    private readonly theme: Theme,
-    private readonly expanded: boolean,
-  ) {}
-
-  render(width: number): string[] {
-    const theme = this.theme;
-    const container = new Container();
-
-    container.addChild(new Spacer(1));
-
-    for (const chunk of this.chunks.get()) {
-      container.addChild(this._getChunkComponent(chunk));
-    }
-
-    container.addChild(new Spacer(1));
-
-    if (this.expanded) {
-      return container.render(width);
-    }
-
-    const lines: string[] = [];
-
-    for (const chunk of container.render(width)) {
-      for (const line of chunk.split("\n")) {
-        lines.push(line);
-      }
-    }
-
-    if (lines.length <= MAX_COLLAPSED_LOG_LINES) {
-      return lines;
-    }
-
-    const truncated = lines.splice(-MAX_COLLAPSED_LOG_LINES);
-    const remaining = lines.length - MAX_COLLAPSED_LOG_LINES;
-
-    const expandHintHead = theme.fg("muted", `(${remaining} more lines, `);
-    const expandHintMid = keyHint("app.tools.expand", "to expand");
-    const expandHintTail = theme.fg("muted", `)`);
-    const expandHint = [expandHintHead, expandHintMid, expandHintTail].join("");
-
-    return [
-      "", // padding line
-      ...truncated,
-      "", // padding line
-      expandHint,
-    ];
-  }
-
-  invalidate() {}
-
-  _getChunkComponent([kind, text]: AgentChunk): Component {
-    function getMarkdownTextStyle(
-      theme: Theme,
-      color: ThemeColor,
-    ): DefaultTextStyle {
-      return {
-        color(text) {
-          return theme.fg(color, text);
-        },
-      };
-    }
-
-    const mdTheme = getMarkdownTheme();
-    const mdThinkingStyle = getMarkdownTextStyle(this.theme, "thinkingText");
-    const mdToolStyle: DefaultTextStyle = {
-      color: (text) => this.theme.fg("toolTitle", text),
-      bgColor: (text) => this.theme.bg("toolPendingBg", text),
-    };
-
-    switch (kind) {
-      case "text":
-        return new Markdown(text, 0, 0, mdTheme);
-      case "thinking":
-        return new Markdown(text, 0, 0, mdTheme, mdThinkingStyle);
-      case "tool": {
-        const container = new Container();
-
-        container.addChild(new Spacer(1));
-        container.addChild(new Markdown(text, 1, 1, mdTheme, mdToolStyle));
-        container.addChild(new Spacer(1));
-
-        return container;
-      }
-    }
-  }
+interface Conf {
+	name: string;
+	model?: string;
+	tools?: string[];
+	prompt?: string;
+	promptGuideline?: string;
 }
 
-function newUsage(): Usage {
-  return {
-    input: 0,
-    output: 0,
-    cacheRead: 0,
-    cacheWrite: 0,
-    totalTokens: 0,
-    cost: {
-      input: 0,
-      output: 0,
-      cacheRead: 0,
-      cacheWrite: 0,
-      total: 0,
-    },
-  };
+async function getAgentConfs(dir: string) {
+	const configs = [{ name: "default" } as Conf];
+
+	let entries: string[];
+	try {
+		entries = await readdir(dir);
+	} catch {
+		return configs;
+	}
+
+	for (const entry of entries) {
+		if (!entry.endsWith(".md")) {
+			continue;
+		}
+
+		const name = path.basename(entry, ".md");
+		const file = path.join(dir, entry);
+		const markdown = await readFile(file, "utf8");
+		const { body, frontmatter: conf } = parseFrontmatter(markdown);
+
+		configs.push({
+			name: conf.name ? String(conf.name) : name,
+			model: conf.model ? String(conf.model) : undefined,
+			tools: conf.tools ? String(conf.tools).split(",") : undefined,
+			prompt: body,
+			promptGuideline: conf.promptGuideline
+				? String(conf.promptGuideline)
+				: undefined,
+		});
+	}
+
+	return configs;
 }
 
-function sumUsageCost(a: Usage, b: Usage): Usage {
-  return {
-    input: a.input,
-    output: a.output,
-    cacheRead: a.cacheRead,
-    cacheWrite: a.cacheWrite,
-    totalTokens: a.totalTokens,
-    cost: {
-      input: a.cost.input + b.cost.input,
-      output: a.cost.output + b.cost.output,
-      cacheRead: a.cost.cacheRead + b.cost.cacheRead,
-      cacheWrite: a.cost.cacheWrite + b.cost.cacheWrite,
-      total: a.cost.total + b.cost.total,
-    },
-  };
+function getTextContent(chunks: (TextContent | ThinkingContent | ToolCall)[]) {
+	return chunks
+		.filter(chunk => chunk.type === "text")
+		.map(chunk => chunk.text)
+		.join("");
+}
+
+function formatCompactToolCalls(calls: Call[], theme: Theme) {
+	const lines: string[] = [];
+
+	for (const call of calls) {
+		const argsFmt = formatToolArgs(call.args);
+		const argsDisplay = argsFmt?.slice(0, 80);
+		const args = argsDisplay && theme.fg("muted", argsDisplay);
+		const name = theme.fg("toolTitle", call.name);
+		const symbol = theme.fg(call.status, call.status !== "warning" ? "●" : "◌");
+
+		if (!args) {
+			lines.push(`${symbol} ${name}`);
+		} else {
+			lines.push(`${symbol} ${name} ${args}`);
+		}
+	}
+
+	return lines;
+}
+
+function formatToolArgs(args: unknown): string | null {
+	if (args === null || args === undefined) {
+		return null;
+	}
+
+	switch (typeof args) {
+		case "string":
+			return args;
+		case "number":
+		case "bigint":
+			return args.toLocaleString();
+		case "boolean":
+			return String(args);
+		case "object":
+			if (Array.isArray(args)) {
+				return args.map(formatToolArgs).filter(Boolean).join(", ");
+			} else {
+				return Object.entries(args)
+					.map(([k, v]) => [k, formatToolArgs(v)])
+					.filter(([_, v]) => v !== null)
+					.map(([k, v]) => `${k}=${v}`)
+					.join(", ");
+			}
+		default:
+			return null;
+	}
+}
+
+type Call = CallOk | CallErr | CallPending;
+type CallOk = { name: string; args: unknown; status: "success" };
+type CallErr = { name: string; args: unknown; status: "error" };
+type CallPending = { name: string; args: unknown; status: "warning" };
+
+function* getToolCalls(events: AgentSessionEvent[]) {
+	for (let i = 0; i < events.length; i++) {
+		const event = events[i];
+		if (event.type !== "tool_execution_start") {
+			continue;
+		}
+
+		const { toolCallId, toolName: name } = event;
+		const last = [...events]
+			.reverse()
+			.filter(entry => "toolCallId" in entry)
+			.filter(entry => entry.toolCallId === toolCallId)
+			.find(entry => entry.type !== "tool_execution_start");
+
+		const args =
+			last?.type === "tool_execution_update" ? last.args : event.args;
+		const status =
+			last?.type === "tool_execution_end"
+				? last.isError
+					? "error"
+					: "success"
+				: "warning";
+
+		yield { name, args, status } as Call;
+	}
 }
