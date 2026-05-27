@@ -1,7 +1,17 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}:
 let
   inherit (lib) getExe;
   inherit (builtins) toJSON;
+
+  # SSH with a _unique_ ssh/config
+  ssh = pkgs.writeShellScriptBin "ssh" ''
+    exec ${pkgs.openssh}/bin/ssh -F "$HOME/.pi/ssh/config" "$@"
+  '';
 in
 {
   home = {
@@ -11,6 +21,8 @@ in
       nodejs
 
       (writeShellScriptBin "pi" ''
+        export PATH="${ssh}/bin:$PATH"
+        export SSH_AUTH_SOCK="''${XDG_RUNTIME_DIR}/pi-ssh-agent.sock";
         export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
         git_common_dir="$(git rev-parse --git-common-dir)"
@@ -63,4 +75,17 @@ in
     };
   };
 
+  systemd.user.services.pi-ssh-agent = {
+    Unit.Description = "pi - ssh agent";
+    Install.WantedBy = [ "default.target" ];
+
+    Service = {
+      Type = "simple";
+      Environment = "SSH_AUTH_SOCK=%t/pi-ssh-agent.sock";
+      ExecStart = "${pkgs.openssh}/bin/ssh-agent -D -a $SSH_AUTH_SOCK";
+
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+  };
 }

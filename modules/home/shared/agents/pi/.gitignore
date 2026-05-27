@@ -1,4 +1,5 @@
-# Auth tokens
+# Auth
+ssh/
 agent/auth.json
 
 # Session history
