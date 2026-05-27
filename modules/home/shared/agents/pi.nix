@@ -1,24 +1,7 @@
 { lib, pkgs, ... }:
 let
-  inherit (lib) getExe escapeShellArg;
-  inherit (builtins) concatStringsSep readFile;
-
-  mkPiBin =
-    name: rules: promptFile:
-    with pkgs;
-    writeShellScriptBin name ''
-      export PI_NONO_PROFILE="${name}"
-      export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-
-      git_common_dir="$(git rev-parse --git-common-dir)"
-
-      ${getExe nono} run \
-        --allow-cwd  \
-        --allow "''${git_common_dir:-/tmp}" \
-        --profile pi-readonly \
-        ${concatStringsSep " " rules} \
-        -- ${getExe llm-agents.pi} --append-system-prompt ${escapeShellArg (readFile promptFile)} "$@"
-    '';
+  inherit (lib) getExe;
+  inherit (builtins) toJSON;
 in
 {
   home = {
@@ -27,81 +10,57 @@ in
       nono
       nodejs
 
-      (mkPiBin "pi" [
-        "--allow $PWD"
-        "--read /nix/store"
-        "--allow ~/.cargo"
-        "--allow ~/.cache/nix"
-        # "--allow /nix/var/nix/daemon-socket" # Linux
-        # "--allow /var/run/nix-daemon.socket" # Darwin
-      ] ./pi/subagents/AGENT.md)
+      (writeShellScriptBin "pi" ''
+        export NIX_SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
 
-      (writeShellScriptBin "pi-raw" ''
+        git_common_dir="$(git rev-parse --git-common-dir)"
+
+        ${getExe nono} run \
+          --allow "$PWD" \
+          --allow "''${git_common_dir:-/tmp}" \
+          --profile pi \
+          -- ${getExe llm-agents.pi} "$@"
+      '')
+
+      (writeShellScriptBin "pi-no-sandbox" ''
         ${getExe llm-agents.pi} "$@"
       '')
     ];
   };
 
   xdg.configFile = {
-    "nono/profiles/pi-readonly.json".text =
-      let
-        inherit (lib) splitString;
-        inherit (builtins) toJSON filter readFile;
+    "nono/profiles/pi.json".text = toJSON {
+      meta.name = "pi";
 
-        rootPaths = with pkgs; [
-          # self
-          llm-agents.pi
-
-          # ssl
-          cacert
-
-          # misc
-          which
-          fd
-          bat
-          ripgrep
-
-          # dev
-          git
-
-          # dev/js
-          pnpm
-          biome
-          nodejs
-
-          # dev/rust
-          clippy
-          rustfmt
+      filesystem = {
+        allow = [
+          # pi
+          "$HOME/.pi"
+          # tmp
+          "/tmp"
+          # nix
+          "$HOME/.cache/nix"
+          # rust
+          "$HOME/.cargo"
+          # nodejs
+          "$HOME/.npm"
+          "$HOME/.cache/pnpm"
+          "$HOME/.local/share/pnpm"
         ];
 
-        closure = pkgs.closureInfo { inherit rootPaths; };
-        storePaths = filter (s: s != "") (splitString "\n" (readFile "${closure}/store-paths"));
-      in
-
-      toJSON {
-        meta.name = "pi-readonly";
-
-        filesystem = {
-          # pi won't load model configuration without it.. :sigh:
-          allow = [ "$HOME/.pi" ];
-
-          read = storePaths ++ [
-            # dotfiles
-            "$HOME/Projects/dotfiles"
-            # config
-            "$HOME/.config/git"
-            # tmp
-            "/tmp"
-            # agents
-            "$HOME/.pi"
-            "$HOME/.agents"
-            "$HOME/.config/claude"
-            # nodejs
-            "$HOME/.npm"
-            "$HOME/.cache/pnpm"
-          ];
-        };
+        read = [
+          # nix
+          "/nix/store"
+          # config
+          "$HOME/.config/git"
+          # agents
+          "$HOME/.agents"
+          "$HOME/.config/claude"
+          # dotfiles
+          "$HOME/Projects/dotfiles"
+        ];
       };
+    };
   };
 
 }

@@ -59,10 +59,14 @@ export default async function (pi: ExtensionAPI) {
 			onUpdate,
 			_ctx,
 		): Promise<AgentToolResult<Details>> {
+			const tools = pi.getActiveTools().filter(name => name !== "agent");
 			const conf = agents.find(candidate => candidate.name === agent);
 			if (!conf) {
 				throw new Error(`Agent with the name '${agent}' doesn't exist`);
 			}
+
+			conf.tools ??= tools;
+			conf.tools = conf.tools.filter(it => tools.includes(it));
 
 			let calls: Call[] = [];
 			let text = "";
@@ -173,7 +177,14 @@ async function* run(prompt: string, conf: Conf, signal?: AbortSignal) {
 		prompt,
 	];
 
-	const child = spawn("pi-raw", argv, { stdio: ["ignore", "pipe", "pipe"] });
+	const child = spawn("pi-no-sandbox", argv, {
+		stdio: ["ignore", "pipe", "pipe"],
+		env: {
+			...process.env,
+			PI_AGENT_DEPTH: "1",
+		},
+	});
+
 	const lines = readline.createInterface({
 		signal,
 		input: child.stdout,
@@ -322,14 +333,22 @@ type CallErr = { name: string; args: unknown; status: "error" };
 type CallPending = { name: string; args: unknown; status: "warning" };
 
 function* getToolCalls(events: AgentSessionEvent[]) {
+	const seen = new Set<string>();
+
 	for (let i = 0; i < events.length; i++) {
 		const event = events[i];
+
 		if (event.type !== "tool_execution_start") {
+			continue;
+		}
+
+		if (seen.has(event.toolCallId)) {
 			continue;
 		}
 
 		const { toolCallId, toolName: name } = event;
 		const last = [...events]
+			.slice(i)
 			.reverse()
 			.filter(entry => "toolCallId" in entry)
 			.filter(entry => entry.toolCallId === toolCallId)
@@ -345,5 +364,6 @@ function* getToolCalls(events: AgentSessionEvent[]) {
 				: "warning";
 
 		yield { name, args, status } as Call;
+		seen.add(event.toolCallId);
 	}
 }
