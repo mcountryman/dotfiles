@@ -10,10 +10,19 @@
     language = [
       {
         name = "typst";
+        language-servers = [
+          "spellcheck"
+          "tinymist"
+        ];
+
         auto-format = true;
         formatter = {
           command = "typstyle";
-          args = [ ];
+          args = [
+            "-l"
+            "80"
+            "--wrap-text"
+          ];
         };
       }
     ];

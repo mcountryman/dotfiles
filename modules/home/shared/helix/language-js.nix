@@ -1,68 +1,80 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 let
   vscode-eslint = "${pkgs.vscode-langservers-extracted}/bin/vscode-eslint-language-server";
 
-  typescript = {
+  mkTypescriptLangConf = name: {
+    inherit name;
+
     auto-format = true;
-    language-servers = [
-      "typescript-language-server"
-      "eslint"
+    roots = [
+      "biome.json"
+      "biome.jsonc"
+      "package.json"
     ];
-    formatter = {
-      command = lib.getExe pkgs.prettier;
-      args = [
-        "--parser"
-        "typescript"
-      ];
-    };
+    language-servers = [
+      "biome"
+      {
+        name = "typescript-language-server";
+        except-features = [ "format" ];
+      }
+    ];
   };
 in
 {
   home.packages = [
+    pkgs.biome
     pkgs.typescript-language-server
     pkgs.vscode-langservers-extracted
   ];
 
   programs.helix.languages = {
-    language-server.eslint = {
-      args = [ "--stdio" ];
-      command = vscode-eslint;
-      config = {
-        run = "onType";
-        quiet = false;
-        format = {
-          enable = true;
-        };
-        nodePath = "";
-        validate = "on";
-        problems = {
-          shortenToSingleLine = false;
-        };
-        experimental = { };
-        rulesCustomizations = [ ];
+    language = [
+      (mkTypescriptLangConf "jsx")
+      (mkTypescriptLangConf "tsx")
+      (mkTypescriptLangConf "javascript")
+      (mkTypescriptLangConf "typescript")
+    ];
 
-        codeActionsOnSave = {
-          mode = "all";
-          source.fixAll.eslint = true;
-        };
+    language-server = {
+      biome = {
+        command = "biome";
+        args = [ "lsp-proxy" ];
+      };
 
-        codeAction = {
-          disableRuleComment = {
+      eslint = {
+        args = [ "--stdio" ];
+        command = vscode-eslint;
+        config = {
+          run = "onType";
+          quiet = false;
+          format = {
             enable = true;
-            location = "separateLine";
           };
-          showDocumentation = {
-            enable = false;
+          nodePath = "";
+          validate = "on";
+          problems = {
+            shortenToSingleLine = false;
+          };
+          experimental = { };
+          rulesCustomizations = [ ];
+
+          codeActionsOnSave = {
+            mode = "all";
+            source.fixAll.eslint = true;
+          };
+
+          codeAction = {
+            disableRuleComment = {
+              enable = true;
+              location = "separateLine";
+            };
+            showDocumentation = {
+              enable = false;
+            };
           };
         };
       };
     };
 
-    language = [
-      ({ name = "tsx"; } // typescript)
-      ({ name = "typescript"; } // typescript)
-      ({ name = "jsx"; } // typescript)
-      ({ name = "javascript"; } // typescript)
-    ];
   };
 }
