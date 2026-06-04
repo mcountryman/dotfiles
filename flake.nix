@@ -8,6 +8,10 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    # WSL
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
+    nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
+
     # Darwin
     nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
@@ -66,6 +70,15 @@
       };
 
       nixosConfigurations = {
+        "wsl" = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [
+            inputs.nixos-wsl.nixosModules.default
+            inputs.self.nixosModules.default
+            ./hosts/wsl
+          ];
+        };
+
         "orbstack" = nixpkgs.lib.nixosSystem {
           system = "aarch64-linux";
           modules = [
