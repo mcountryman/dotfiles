@@ -57,11 +57,11 @@ in
     '';
   };
 
-  systemd.user.tmpfiles.rules = [
-    "d %h/.cache/opencode       - - - - -"
-    "d %h/.config/opencode      - - - - -"
-    "d %h/.local/share/opentui  - - - - -"
-    "d %h/.local/share/opencode - - - - -"
-    "d %h/.local/state/opencode - - - - -"
-  ];
+  # systemd.user.tmpfiles.rules = [
+  #   "d %h/.cache/opencode       - - - - -"
+  #   "d %h/.config/opencode      - - - - -"
+  #   "d %h/.local/share/opentui  - - - - -"
+  #   "d %h/.local/share/opencode - - - - -"
+  #   "d %h/.local/state/opencode - - - - -"
+  # ];
 }

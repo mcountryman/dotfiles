@@ -35,7 +35,7 @@
         "/bin/launchctl"
         "setenv"
         "SSH_AUTH_SOCK"
-        "${config.launchd.agents.gpg-agent.config.Sockets.Ssh.SockPathName}"
+        "/Users/marvin/.gnupg/S.gpg-agent.ssh"
       ];
     };
   };
