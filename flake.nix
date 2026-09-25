@@ -41,10 +41,6 @@
     # helix.url = "github:helix-editor/helix";
     # helix.url = "github:helix-editor/helix/079f544260f4f5eaff08104bf07abd57bfb7b611";
     # helix.inputs.nixpkgs.follows = "nixpkgs";
-
-    # LLM agents
-    llm-agents.url = "github:numtide/llm-agents.nix";
-    # llm-agents.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

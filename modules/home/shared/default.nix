@@ -1,6 +1,5 @@
 _: {
   imports = [
-    ./agents
     ./helix
 
     ./direnv.nix
